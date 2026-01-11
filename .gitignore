@@ -42,7 +42,8 @@ next-env.d.ts
 
 # python
 .venv/*
-lib/*
+lib/python*/
+lib/*.py
 __pycache__
 *.pyc
 *.pyo
