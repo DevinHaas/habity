@@ -2,7 +2,7 @@
 
 import { useForm } from "@tanstack/react-form";
 import { motion } from "framer-motion";
-import { Calendar as CalendarIcon } from "lucide-react";
+import { Calendar as CalendarIcon, Sun, SunDim, Moon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -45,12 +45,19 @@ const DURATIONS = [
 
 const ICONS = ["✨", "💧", "🧘", "🏃", "📚", "🎨", "🎵", "💪", "🌱", "☀️"];
 
+const TIME_OF_DAY_OPTIONS = [
+  { value: "morning" as const, label: "Morning", icon: Sun },
+  { value: "day" as const, label: "Day", icon: SunDim },
+  { value: "evening" as const, label: "Evening", icon: Moon },
+];
+
 interface HabitFormProps {
   onSubmit: (values: HabitFormValues) => void;
   onCancel: () => void;
+  isSubmitting?: boolean;
 }
 
-export function HabitForm({ onSubmit, onCancel }: HabitFormProps) {
+export function HabitForm({ onSubmit, onCancel, isSubmitting = false }: HabitFormProps) {
   const { onHabitAdded } = useFeedback();
   const [showCalendar, setShowCalendar] = useState(false);
 
@@ -294,6 +301,38 @@ export function HabitForm({ onSubmit, onCancel }: HabitFormProps) {
         )}
       </form.Field>
 
+      {/* Time of Day */}
+      <form.Field name="timeOfDay">
+        {(field) => (
+          <div className="space-y-2">
+            <Label className="text-foreground">Time of day</Label>
+            <div className="flex gap-2">
+              {TIME_OF_DAY_OPTIONS.map((option) => {
+                const isSelected = field.state.value === option.value;
+                const Icon = option.icon;
+                return (
+                  <motion.button
+                    key={option.value}
+                    type="button"
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => field.handleChange(option.value)}
+                    className={cn(
+                      "flex-1 flex items-center justify-center gap-2 h-12 rounded-xl text-sm font-medium transition-colors",
+                      isSelected
+                        ? "bg-foreground text-background"
+                        : "bg-muted text-muted-foreground hover:bg-muted/80"
+                    )}
+                  >
+                    <Icon className="h-4 w-4" />
+                    {option.label}
+                  </motion.button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+      </form.Field>
+
       {/* Repeat Days */}
       <form.Field
         name="repeatDays"
@@ -364,9 +403,10 @@ export function HabitForm({ onSubmit, onCancel }: HabitFormProps) {
       {/* Submit Button */}
       <Button
         type="submit"
-        className="w-full h-14 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground text-lg font-semibold"
+        disabled={isSubmitting}
+        className="w-full h-14 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground text-lg font-semibold disabled:opacity-50"
       >
-        Save Habit
+        {isSubmitting ? "Saving..." : "Save Habit"}
       </Button>
     </form>
   );

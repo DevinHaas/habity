@@ -1,16 +1,39 @@
 "use client";
 
+import { useMemo } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { HabitCard } from "@/components/habits/HabitCard";
-import type { Habit } from "@/hooks/useHabits";
+import { TimelineGroup } from "./TimelineGroup";
+import type { Habit, TimeOfDay } from "@/hooks/useHabits";
 
 interface HabitListProps {
   habits: Habit[];
   onToggleHabit: (id: string) => void;
+  completedCount: number;
+  totalCount: number;
 }
 
-export function HabitList({ habits, onToggleHabit }: HabitListProps) {
+const TIME_ORDER: TimeOfDay[] = ["morning", "day", "evening"];
+
+export function HabitList({ habits, onToggleHabit, completedCount, totalCount }: HabitListProps) {
+  // Group habits by time of day
+  const groupedHabits = useMemo(() => {
+    const groups: Record<TimeOfDay, Habit[]> = {
+      morning: [],
+      day: [],
+      evening: [],
+    };
+    
+    habits.forEach(habit => {
+      const timeOfDay = habit.timeOfDay || "morning";
+      groups[timeOfDay].push(habit);
+    });
+    
+    return groups;
+  }, [habits]);
+
+  const hasAnyHabits = habits.length > 0;
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -33,9 +56,8 @@ export function HabitList({ habits, onToggleHabit }: HabitListProps) {
             },
           },
         }}
-        className="space-y-3"
       >
-        {habits.length === 0 ? (
+        {!hasAnyHabits ? (
           <div className="rounded-2xl bg-card p-8 text-center">
             <p className="text-muted-foreground">No habits for today</p>
             <Link
@@ -46,14 +68,21 @@ export function HabitList({ habits, onToggleHabit }: HabitListProps) {
             </Link>
           </div>
         ) : (
-          habits.map((habit, index) => (
-            <HabitCard
-              key={habit.id}
-              habit={habit}
-              onToggle={onToggleHabit}
-              index={index}
-            />
-          ))
+          TIME_ORDER.map((timeOfDay) => {
+            const habitsForTime = groupedHabits[timeOfDay];
+            if (habitsForTime.length === 0) return null;
+            
+            return (
+              <TimelineGroup
+                key={timeOfDay}
+                timeOfDay={timeOfDay}
+                habits={habitsForTime}
+                onToggleHabit={onToggleHabit}
+                completedCount={completedCount}
+                totalCount={totalCount}
+              />
+            );
+          })
         )}
       </motion.div>
     </div>

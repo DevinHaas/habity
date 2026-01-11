@@ -21,13 +21,13 @@ export function TimePeriodSelector({
   onSelect,
 }: TimePeriodSelectorProps) {
   return (
-    <div className="flex rounded-xl bg-muted p-1">
+    <div className="flex rounded-lg bg-muted p-0.5">
       {periods.map((period) => (
         <button
           key={period.value}
           onClick={() => onSelect(period.value)}
           className={cn(
-            "relative flex-1 rounded-lg px-4 py-2 text-sm font-medium transition-colors",
+            "relative flex-1 rounded-md px-3 py-1.5 text-xs font-medium transition-colors",
             selected === period.value
               ? "text-foreground"
               : "text-muted-foreground hover:text-foreground"
@@ -36,7 +36,7 @@ export function TimePeriodSelector({
           {selected === period.value && (
             <motion.div
               layoutId="period-indicator"
-              className="absolute inset-0 bg-card rounded-lg shadow-sm"
+              className="absolute inset-0 bg-card rounded-md shadow-sm"
               initial={false}
               transition={{
                 type: "spring",

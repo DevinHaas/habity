@@ -2,7 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import Link from "next/link";
-import { Home, BarChart3, Plus } from "lucide-react";
+import { Home, BarChart3, Plus, Trophy } from "lucide-react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 
@@ -11,6 +11,11 @@ const navItems = [
     href: "/",
     icon: Home,
     label: "Home",
+  },
+  {
+    href: "/goals",
+    icon: Trophy,
+    label: "Goals",
   },
   {
     href: "/stats",
@@ -71,22 +76,41 @@ export function BottomNav() {
   );
 }
 
-export function FloatingAddButton() {
+interface FloatingAddButtonProps {
+  href?: string;
+  color?: "brown" | "olive";
+}
+
+export function FloatingAddButton({ href = "/add-habit", color = "brown" }: FloatingAddButtonProps) {
   const pathname = usePathname();
 
-  // Don't show on add-habit page
-  if (pathname === "/add-habit") {
+  // Don't show on add-habit or add-goal pages
+  if (pathname === "/add-habit" || pathname === "/add-goal") {
     return null;
   }
 
+  const bgColor = color === "olive" ? "bg-olive shadow-olive/30" : "bg-brown shadow-brown/30";
+
   return (
-    <Link href="/add-habit">
+    <Link href={href}>
       <motion.button
+        initial={{ opacity: 0, scale: 0.8 }}
+        animate={{ opacity: 1, scale: 1 }}
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
-        className="fixed bottom-24 right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-brown text-white shadow-lg shadow-brown/30"
+        transition={{ type: "spring", stiffness: 400, damping: 25 }}
+        className={cn(
+          "fixed bottom-24 right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full text-white shadow-lg",
+          bgColor
+        )}
       >
-        <Plus className="h-7 w-7" />
+        <motion.div
+          initial={{ rotate: -180, opacity: 0 }}
+          animate={{ rotate: 0, opacity: 1 }}
+          transition={{ type: "spring", stiffness: 200, damping: 15, delay: 0.1 }}
+        >
+          <Plus className="h-7 w-7" />
+        </motion.div>
       </motion.button>
     </Link>
   );
