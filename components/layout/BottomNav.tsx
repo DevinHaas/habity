@@ -79,9 +79,10 @@ export function BottomNav() {
 interface FloatingAddButtonProps {
   href?: string;
   color?: "brown" | "olive";
+  variant?: "fixed" | "relative";
 }
 
-export function FloatingAddButton({ href = "/add-habit", color = "brown" }: FloatingAddButtonProps) {
+export function FloatingAddButton({ href = "/add-habit", color = "brown", variant = "fixed" }: FloatingAddButtonProps) {
   const pathname = usePathname();
 
   // Don't show on add-habit or add-goal pages
@@ -90,6 +91,9 @@ export function FloatingAddButton({ href = "/add-habit", color = "brown" }: Floa
   }
 
   const bgColor = color === "olive" ? "bg-olive shadow-olive/30" : "bg-brown shadow-brown/30";
+  const positionClass = variant === "fixed" 
+    ? "fixed bottom-24 right-4 z-50" 
+    : "relative z-10";
 
   return (
     <Link href={href}>
@@ -100,7 +104,8 @@ export function FloatingAddButton({ href = "/add-habit", color = "brown" }: Floa
         whileTap={{ scale: 0.95 }}
         transition={{ type: "spring", stiffness: 400, damping: 25 }}
         className={cn(
-          "fixed bottom-24 right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full text-white shadow-lg",
+          positionClass,
+          "flex h-14 w-14 items-center justify-center rounded-full text-white shadow-lg",
           bgColor
         )}
       >

@@ -3,15 +3,18 @@
 import { db } from '@/db';
 import { userStats } from '@/db/schema';
 import { eq } from 'drizzle-orm';
+import { getCurrentUserId } from '@/lib/auth-utils';
 
 export async function getStats() {
-  const stats = await db.select().from(userStats).limit(1);
+  const userId = await getCurrentUserId();
+  const stats = await db.select().from(userStats).where(eq(userStats.userId, userId)).limit(1);
 
-  // If no stats exist, create default stats
+  // If no stats exist for this user, create default stats
   if (stats.length === 0) {
     const [newStats] = await db
       .insert(userStats)
       .values({
+        userId,
         level: 1,
         points: 0,
         totalPoints: 150,
@@ -27,18 +30,20 @@ export async function getStats() {
 }
 
 export async function updateStats(
-  data: Partial<Omit<typeof userStats.$inferInsert, 'id' | 'createdAt'>>
+  data: Partial<Omit<typeof userStats.$inferInsert, 'userId' | 'createdAt'>>
 ) {
+  const userId = await getCurrentUserId();
   const currentStats = await getStats();
   const [updated] = await db
     .update(userStats)
     .set(data)
-    .where(eq(userStats.id, currentStats.id))
+    .where(eq(userStats.userId, currentStats.userId))
     .returning();
   return updated;
 }
 
 export async function incrementPoints(amount: number) {
+  const userId = await getCurrentUserId();
   const currentStats = await getStats();
   const newPoints = currentStats.points + amount;
   const newCoins = currentStats.coins + amount;
@@ -64,7 +69,7 @@ export async function incrementPoints(amount: number) {
       coins: newCoins,
       totalHabitsCompleted: newTotalCompleted,
     })
-    .where(eq(userStats.id, currentStats.id))
+    .where(eq(userStats.userId, userId))
     .returning();
 
   return updated;

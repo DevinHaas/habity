@@ -9,6 +9,8 @@ interface TimelineGroupProps {
   timeOfDay: TimeOfDay;
   habits: Habit[];
   onToggleHabit: (id: string) => void;
+  onEditHabit: (habit: Habit) => void;
+  onDeleteHabit: (id: string) => void;
   completedCount: number;
   totalCount: number;
 }
@@ -37,7 +39,15 @@ const TIME_CONFIG = {
   },
 };
 
-export function TimelineGroup({ timeOfDay, habits, onToggleHabit, completedCount, totalCount }: TimelineGroupProps) {
+export function TimelineGroup({ 
+  timeOfDay, 
+  habits, 
+  onToggleHabit, 
+  onEditHabit,
+  onDeleteHabit,
+  completedCount, 
+  totalCount 
+}: TimelineGroupProps) {
   const config = TIME_CONFIG[timeOfDay];
   const Icon = config.icon;
   
@@ -119,6 +129,8 @@ export function TimelineGroup({ timeOfDay, habits, onToggleHabit, completedCount
                   <HabitCard
                     habit={habit}
                     onToggle={onToggleHabit}
+                    onEdit={onEditHabit}
+                    onDelete={onDeleteHabit}
                     index={index}
                     completedCount={completedCount}
                     totalCount={totalCount}

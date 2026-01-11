@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { BarChart3, CalendarDays } from "lucide-react";
+import { BarChart3, CalendarDays, Settings } from "lucide-react";
 import { LevelCard } from "@/components/stats/LevelCard";
 import { StatsOverview } from "@/components/stats/StatsOverview";
 import { ProgressBars } from "@/components/stats/ProgressBars";
@@ -10,6 +10,7 @@ import { TimePeriodSelector } from "@/components/stats/TimePeriodSelector";
 import { HabitCalendar } from "@/components/stats/HabitCalendar";
 import { BottomNav } from "@/components/layout/BottomNav";
 import { Header } from "@/components/layout/Header";
+import { SettingsModal } from "@/components/shared/SettingsModal";
 import { useHabits } from "@/hooks";
 import { cn } from "@/lib/utils";
 
@@ -19,6 +20,7 @@ type AnalyticsView = "bars" | "calendar";
 export default function StatsPage() {
   const [timePeriod, setTimePeriod] = useState<TimePeriod>("weekly");
   const [analyticsView, setAnalyticsView] = useState<AnalyticsView>("calendar");
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const { stats, habits, levelName, getCompletionsForDate } = useHabits();
 
   // Get progress percentage based on time period
@@ -40,8 +42,20 @@ export default function StatsPage() {
 
       {/* Page Title */}
       <div className="mx-auto max-w-lg px-6 py-2">
-        <h1 className="text-xl font-bold text-foreground">Your Profile</h1>
-        <p className="text-xs text-muted-foreground">Track your growth</p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-xl font-bold text-foreground">Your Profile</h1>
+            <p className="text-xs text-muted-foreground">Track your growth</p>
+          </div>
+          <motion.button
+            whileTap={{ scale: 0.9 }}
+            onClick={() => setIsSettingsOpen(true)}
+            className="flex h-10 w-10 items-center justify-center rounded-full hover:bg-muted transition-colors"
+            aria-label="Open settings"
+          >
+            <Settings className="h-5 w-5 text-muted-foreground" />
+          </motion.button>
+        </div>
       </div>
 
       {/* Main Content */}
@@ -165,6 +179,7 @@ export default function StatsPage() {
                 <HabitCalendar
                   getCompletionsForDate={getCompletionsForDate}
                   totalHabits={habits.length}
+                  timePeriod={timePeriod}
                 />
               </motion.div>
             )}
@@ -174,6 +189,12 @@ export default function StatsPage() {
 
       {/* Bottom Navigation */}
       <BottomNav />
+
+      {/* Settings Modal */}
+      <SettingsModal
+        isOpen={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
+      />
     </div>
   );
 }

@@ -8,10 +8,14 @@ import { BottomNav, FloatingAddButton } from "@/components/layout/BottomNav";
 import { Header } from "@/components/layout/Header";
 import { SuccessScreen } from "@/components/shared/SuccessScreen";
 import { useHabits, useTimeOfDay } from "@/hooks";
-import { Check } from "lucide-react";
 
 function getTodayString(): string {
-  return new Date().toISOString().split("T")[0];
+  // Use local date formatting (not UTC) for consistent behavior
+  const date = new Date();
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
 }
 
 function getSuccessShownKey(): string {
@@ -19,7 +23,15 @@ function getSuccessShownKey(): string {
 }
 
 export default function HomePage() {
-  const { habits, toggleHabit, stats, getCompletedCount, getTotalCount } = useHabits();
+  const { 
+    habits, 
+    toggleHabit, 
+    updateHabit,
+    removeHabit,
+    stats, 
+    getCompletedCount, 
+    getTotalCount 
+  } = useHabits();
   const { isDay } = useTimeOfDay();
   
   const completedCount = getCompletedCount();
@@ -123,6 +135,8 @@ export default function HomePage() {
             <HabitList 
               habits={habits} 
               onToggleHabit={toggleHabit}
+              onEditHabit={updateHabit}
+              onDeleteHabit={removeHabit}
               completedCount={completedCount}
               totalCount={totalCount}
             />
@@ -130,8 +144,14 @@ export default function HomePage() {
         </div>
       </main>
 
-      {/* Floating Add Button */}
-      <FloatingAddButton />
+      {/* Floating Add Button - fixed above navbar but constrained to container width */}
+      <div className="fixed bottom-24 left-0 right-0 z-40 pointer-events-none">
+        <div className="mx-auto max-w-lg px-6">
+          <div className="flex justify-end pointer-events-auto">
+            <FloatingAddButton variant="relative" />
+          </div>
+        </div>
+      </div>
 
       {/* Bottom Navigation */}
       <BottomNav />

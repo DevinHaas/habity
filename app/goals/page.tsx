@@ -8,15 +8,19 @@ import { GoalCard } from "@/components/goals/GoalCard";
 import { BottomNav, FloatingAddButton } from "@/components/layout/BottomNav";
 import { Header } from "@/components/layout/Header";
 import { useGoals, type GoalWithProgress } from "@/hooks/useGoals";
-import { useHabits } from "@/hooks";
+import { useHabits, useTimeOfDay } from "@/hooks";
 import { Button } from "@/components/ui/button";
 
 export default function GoalsPage() {
   const { goals, totalCoins, removeGoal } = useGoals();
   const { stats } = useHabits();
+  const { isDay } = useTimeOfDay();
 
   const completedGoals = goals.filter((g: GoalWithProgress) => g.isCompleted);
   const activeGoals = goals.filter((g: GoalWithProgress) => !g.isCompleted);
+
+  // Background image changes based on time of day
+  const backgroundImage = isDay ? "/archer_target.jpeg" : "/archer_target_night.jpeg";
 
   return (
     <div className="min-h-screen bg-card flex flex-col max-w-2xl mx-auto">
@@ -29,7 +33,7 @@ export default function GoalsPage() {
         {/* Background Image */}
         <div className="absolute inset-0">
           <Image
-            src="/archer_target.jpeg"
+            src={backgroundImage}
             alt="Goals Background"
             fill
             className="object-cover"
@@ -157,8 +161,14 @@ export default function GoalsPage() {
         </div>
       </main>
 
-      {/* Floating Add Goal Button */}
-      <FloatingAddButton href="/add-goal" color="olive" />
+      {/* Floating Add Goal Button - fixed above navbar but constrained to container width */}
+      <div className="fixed bottom-24 left-0 right-0 z-40 pointer-events-none">
+        <div className="mx-auto max-w-lg px-6">
+          <div className="flex justify-end pointer-events-auto">
+            <FloatingAddButton href="/add-goal" color="olive" variant="relative" />
+          </div>
+        </div>
+      </div>
 
       {/* Bottom Navigation */}
       <BottomNav />

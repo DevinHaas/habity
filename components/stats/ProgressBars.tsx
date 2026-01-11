@@ -64,7 +64,7 @@ export function ProgressBars({ habits }: ProgressBarsProps) {
               style={{ backgroundColor: habit.color }}
             >
               <span className="text-white font-bold text-[10px]">
-                {habit.progress}%
+                {Math.round(habit.progress)}%
               </span>
             </motion.div>
           </div>

@@ -4,6 +4,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   createHabit,
   deleteHabit,
+  updateHabit,
   toggleCompletion,
 } from '@/db/actions/habits';
 import { incrementPoints } from '@/db/actions/stats';
@@ -78,6 +79,16 @@ export function useToggleHabit() {
       queryClient.invalidateQueries({
         queryKey: queryKeys.habits.completions(date),
       });
+      // Invalidate completion history and all completions for streak/progress recalculation
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.habits.allCompletions,
+      });
+      queryClient.invalidateQueries({
+        predicate: (query) =>
+          Array.isArray(query.queryKey) &&
+          query.queryKey[0] === 'completions' &&
+          query.queryKey[1] === 'history',
+      });
       queryClient.invalidateQueries({ queryKey: queryKeys.stats.all });
     },
   });
@@ -138,6 +149,37 @@ export function useDeleteHabit() {
       return { previousHabits };
     },
     onError: (_err, _habitId, context) => {
+      if (context?.previousHabits) {
+        queryClient.setQueryData(queryKeys.habits.all, context.previousHabits);
+      }
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.habits.all });
+    },
+  });
+}
+
+export function useUpdateHabit() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, data }: { id: string; data: Partial<Omit<Habit, 'id' | 'createdAt'>> }) =>
+      updateHabit(id, data),
+    onMutate: async ({ id, data }) => {
+      await queryClient.cancelQueries({ queryKey: queryKeys.habits.all });
+
+      const previousHabits = queryClient.getQueryData<Habit[]>(
+        queryKeys.habits.all
+      );
+
+      // Optimistically update the habit
+      queryClient.setQueryData<Habit[]>(queryKeys.habits.all, (old) =>
+        old?.map((h) => (h.id === id ? { ...h, ...data } : h)) || []
+      );
+
+      return { previousHabits };
+    },
+    onError: (_err, _variables, context) => {
       if (context?.previousHabits) {
         queryClient.setQueryData(queryKeys.habits.all, context.previousHabits);
       }

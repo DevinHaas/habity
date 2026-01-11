@@ -1,9 +1,11 @@
 "use client";
 
 import { useCallback, useMemo } from "react";
-import { useHabitsQuery, useCompletionsQuery, useCompletionHistoryQuery } from "./queries/useHabitsQuery";
+import { toast } from "@/lib/ToastProvider";
+import { useHabitsQuery, useCompletionsQuery, useCompletionHistoryQuery, useAllCompletionsQuery } from "./queries/useHabitsQuery";
 import { useStatsQuery } from "./queries/useStatsQuery";
-import { useToggleHabit, useAddHabit, useDeleteHabit } from "./mutations/useHabitMutations";
+import { useToggleHabit, useAddHabit, useDeleteHabit, useUpdateHabit } from "./mutations/useHabitMutations";
+import { useSoundEffects } from "./useSoundEffects";
 import type { habits as habitsTable, habitCompletions, userStats } from "@/db/schema";
 
 export type TimeOfDay = "morning" | "day" | "evening";
@@ -73,8 +75,16 @@ export function getLevelProgress(points: number, totalPoints: number): number {
   return Math.min((points / totalPoints) * 100, 100);
 }
 
+// Format date to YYYY-MM-DD in LOCAL timezone (not UTC)
+function formatLocalDate(date: Date): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
 function getTodayString(): string {
-  return new Date().toISOString().split("T")[0];
+  return formatLocalDate(new Date());
 }
 
 function calculateStreak(
@@ -170,12 +180,17 @@ export function useHabits() {
   const { data: dbHabits = [], isPending: isHabitsLoading } = useHabitsQuery();
   const { data: todayCompletions = [] } = useCompletionsQuery(todayString);
   const { data: completionHistory = [] } = useCompletionHistoryQuery(30);
+  const { data: allCompletions = [] } = useAllCompletionsQuery();
   const { data: dbStats } = useStatsQuery();
 
   // Mutations
   const toggleMutation = useToggleHabit();
   const addMutation = useAddHabit();
   const deleteMutation = useDeleteHabit();
+  const updateMutation = useUpdateHabit();
+  
+  // Sound effects
+  const { playCoin } = useSoundEffects();
 
   // Transform DB habits to frontend habits with completion status and streaks
   const habits = useMemo((): Habit[] => {
@@ -191,6 +206,27 @@ export function useHabits() {
       streak: calculateStreak(dbHabit.id, completionHistory),
     }));
   }, [dbHabits, todayCompletions, completionHistory]);
+
+  // Calculate completion rate for a habit based on creation date
+  const calculateCompletionRate = useCallback((habitId: string, createdAt: Date): number => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    const creationDate = new Date(createdAt);
+    creationDate.setHours(0, 0, 0, 0);
+    
+    // Calculate days since creation (including today)
+    const daysSinceCreation = Math.max(1, Math.ceil((today.getTime() - creationDate.getTime()) / (1000 * 60 * 60 * 24)) + 1);
+    
+    // Count completions for this habit
+    const habitCompletions = allCompletions.filter((c) => c.habitId === habitId);
+    const completionCount = habitCompletions.length;
+    
+    // Calculate completion rate as percentage
+    const completionRate = (completionCount / daysSinceCreation) * 100;
+    
+    return Math.min(completionRate, 100);
+  }, [allCompletions]);
 
   // Transform DB stats to frontend stats
   const stats = useMemo((): UserStats => {
@@ -215,19 +251,26 @@ export function useHabits() {
       coins: dbStats.coins,
       totalHabitsCompleted: dbStats.totalHabitsCompleted,
       currentStreak: calculateCurrentStreak(completionHistory),
-      habits: habits.map((h) => ({
-        name: h.name,
-        progress: Math.min((h.streak / 30) * 100, 100),
-        color: h.color,
-      })),
+      habits: habits.map((h) => {
+        const dbHabit = dbHabits.find((dbH) => dbH.id === h.id);
+        const progress = dbHabit?.createdAt 
+          ? calculateCompletionRate(h.id, dbHabit.createdAt)
+          : 0;
+        return {
+          name: h.name,
+          progress,
+          color: h.color,
+        };
+      }),
     };
-  }, [dbStats, completionHistory, habits]);
+  }, [dbStats, completionHistory, habits, dbHabits, calculateCompletionRate]);
 
-  // Group completions by date for calendar view
+  // Group completions by date for calendar view (using allCompletions for yearly view support)
   const completionHistoryByDate = useMemo((): DayCompletion[] => {
     const grouped = new Map<string, HabitCompletion[]>();
 
-    completionHistory.forEach((completion) => {
+    // Use allCompletions instead of completionHistory to support yearly view
+    allCompletions.forEach((completion) => {
       const date = completion.completionDate;
       const habit = dbHabits.find((h) => h.id === completion.habitId);
 
@@ -245,20 +288,33 @@ export function useHabits() {
     return Array.from(grouped.entries())
       .map(([date, completions]) => ({ date, completions }))
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-  }, [completionHistory, dbHabits]);
+  }, [allCompletions, dbHabits]);
 
   const toggleHabit = useCallback(
     (id: string) => {
       const habit = habits.find((h) => h.id === id);
       if (!habit) return;
 
-      toggleMutation.mutate({
-        habitId: id,
-        date: todayString,
-        completed: !habit.completed,
-      });
+      const wasCompleted = habit.completed;
+      
+      toggleMutation.mutate(
+        {
+          habitId: id,
+          date: todayString,
+          completed: !habit.completed,
+        },
+        {
+          onSuccess: () => {
+            // Show toast and play sound only when completing (not uncompleting)
+            if (!wasCompleted) {
+              playCoin();
+              toast("+10 XP", { description: "Habit completed!" });
+            }
+          },
+        }
+      );
     },
-    [habits, toggleMutation, todayString]
+    [habits, toggleMutation, todayString, playCoin]
   );
 
   const addHabit = useCallback(
@@ -280,6 +336,23 @@ export function useHabits() {
       deleteMutation.mutate(id);
     },
     [deleteMutation]
+  );
+
+  const updateHabit = useCallback(
+    (id: string, habit: Partial<Omit<Habit, "id" | "streak" | "completed">>) => {
+      updateMutation.mutate({
+        id,
+        data: {
+          name: habit.name,
+          icon: habit.icon,
+          duration: habit.duration,
+          color: habit.color,
+          repeatDays: habit.repeatDays,
+          timeOfDay: habit.timeOfDay,
+        },
+      });
+    },
+    [updateMutation]
   );
 
   const getHabitsForDay = useCallback(
@@ -305,7 +378,8 @@ export function useHabits() {
 
   const getCompletionsForDate = useCallback(
     (date: Date): HabitCompletion[] => {
-      const dateStr = date.toISOString().split("T")[0];
+      // Use local date formatting (not UTC) to match how completions are stored
+      const dateStr = formatLocalDate(date);
       const dayCompletion = completionHistoryByDate.find((d) => d.date === dateStr);
       return dayCompletion?.completions || [];
     },
@@ -323,6 +397,7 @@ export function useHabits() {
     toggleHabit,
     addHabit,
     removeHabit,
+    updateHabit,
     getHabitsForDay,
     getTodayHabits,
     getCompletedCount,

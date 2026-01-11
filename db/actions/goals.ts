@@ -2,29 +2,34 @@
 
 import { db } from '@/db';
 import { goals } from '@/db/schema';
-import { eq } from 'drizzle-orm';
+import { eq, and } from 'drizzle-orm';
+import { getCurrentUserId } from '@/lib/auth-utils';
 
 export async function getGoals() {
-  return db.select().from(goals).orderBy(goals.createdAt);
+  const userId = await getCurrentUserId();
+  return db.select().from(goals).where(eq(goals.userId, userId)).orderBy(goals.createdAt);
 }
 
-export async function createGoal(data: typeof goals.$inferInsert) {
-  const [goal] = await db.insert(goals).values(data).returning();
+export async function createGoal(data: Omit<typeof goals.$inferInsert, 'userId'>) {
+  const userId = await getCurrentUserId();
+  const [goal] = await db.insert(goals).values({ ...data, userId }).returning();
   return goal;
 }
 
 export async function updateGoal(
   id: string,
-  data: Partial<Omit<typeof goals.$inferInsert, 'id' | 'createdAt'>>
+  data: Partial<Omit<typeof goals.$inferInsert, 'id' | 'createdAt' | 'userId'>>
 ) {
+  const userId = await getCurrentUserId();
   const [goal] = await db
     .update(goals)
     .set(data)
-    .where(eq(goals.id, id))
+    .where(and(eq(goals.id, id), eq(goals.userId, userId)))
     .returning();
   return goal;
 }
 
 export async function deleteGoal(id: string) {
-  await db.delete(goals).where(eq(goals.id, id));
+  const userId = await getCurrentUserId();
+  await db.delete(goals).where(and(eq(goals.id, id), eq(goals.userId, userId)));
 }

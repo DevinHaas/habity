@@ -58,6 +58,8 @@
   --color-pink: var(--pink);
   --color-success: var(--success);
   --color-success-light: var(--success-light);
+  --color-edit-action: var(--edit-action);
+  --color-delete-action: var(--delete-action);
 }
 
 :root {
@@ -129,6 +131,9 @@
   --pink: #D4A5C9;
   --success: #6B9B37;
   --success-light: #E8F5E0;
+  /* Action colors - medieval themed */
+  --edit-action: #5B8FA3; /* Muted slate blue */
+  --delete-action: #A05D47; /* Rusty red-brown */
 }
 
 .dark {
@@ -177,6 +182,9 @@
   --pink: #E8C0DC;
   --success: #8BC34A;
   --success-light: #3A4530;
+  /* Action colors - dark mode variants */
+  --edit-action: #6BA0B8; /* Lighter muted blue for dark mode */
+  --delete-action: #C06D57; /* Warmer red for dark mode */
 }
 
 @layer base {
@@ -199,3 +207,4 @@
     padding-top: env(safe-area-inset-top);
   }
 }
+

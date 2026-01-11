@@ -133,7 +133,7 @@ export function GoalCard({ goal, onDelete, onEdit, index = 0 }: GoalCardProps) {
                   }}
                   className="flex w-full items-center gap-2 px-4 py-3 text-sm text-foreground hover:bg-muted transition-colors"
                 >
-                  <Edit2 className="h-4 w-4" />
+                  <Edit2 className="h-4 w-4" style={{ color: 'var(--edit-action)' }} />
                   Edit
                 </button>
                 <button
@@ -141,7 +141,8 @@ export function GoalCard({ goal, onDelete, onEdit, index = 0 }: GoalCardProps) {
                     onDelete?.(goal.id);
                     setShowMenu(false);
                   }}
-                  className="flex w-full items-center gap-2 px-4 py-3 text-sm text-destructive hover:bg-muted transition-colors"
+                  className="flex w-full items-center gap-2 px-4 py-3 text-sm hover:bg-muted transition-colors"
+                  style={{ color: 'var(--delete-action)' }}
                 >
                   <Trash2 className="h-4 w-4" />
                   Delete

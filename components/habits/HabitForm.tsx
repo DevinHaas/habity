@@ -21,7 +21,7 @@ import {
   type HabitFormValues,
 } from "@/lib/validations/habit";
 import { useFeedback } from "@/hooks";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 
 const DAYS = [
   { label: "M", value: 0 },
@@ -55,14 +55,32 @@ interface HabitFormProps {
   onSubmit: (values: HabitFormValues) => void;
   onCancel: () => void;
   isSubmitting?: boolean;
+  initialValues?: Partial<HabitFormValues>;
+  isEditMode?: boolean;
 }
 
-export function HabitForm({ onSubmit, onCancel, isSubmitting = false }: HabitFormProps) {
+export function HabitForm({ 
+  onSubmit, 
+  onCancel, 
+  isSubmitting = false,
+  initialValues,
+  isEditMode = false,
+}: HabitFormProps) {
   const { onHabitAdded } = useFeedback();
   const [showCalendar, setShowCalendar] = useState(false);
 
+  const defaultValues = useMemo(() => {
+    if (initialValues) {
+      return {
+        ...DEFAULT_HABIT_FORM_VALUES,
+        ...initialValues,
+      };
+    }
+    return DEFAULT_HABIT_FORM_VALUES;
+  }, [initialValues]);
+
   const form = useForm({
-    defaultValues: DEFAULT_HABIT_FORM_VALUES,
+    defaultValues,
     onSubmit: async ({ value }) => {
       // Basic validation
       if (!value.name.trim()) {
@@ -71,7 +89,9 @@ export function HabitForm({ onSubmit, onCancel, isSubmitting = false }: HabitFor
       if (value.repeatDays.length === 0) {
         return;
       }
-      onHabitAdded();
+      if (!isEditMode) {
+        onHabitAdded();
+      }
       onSubmit(value);
     },
   });
@@ -85,55 +105,6 @@ export function HabitForm({ onSubmit, onCancel, isSubmitting = false }: HabitFor
       }}
       className="space-y-6"
     >
-      {/* Illustration */}
-      <div className="flex justify-center py-4">
-        <div className="relative">
-          <svg viewBox="0 0 120 100" className="w-32 h-28">
-            {/* Calendar body */}
-            <rect
-              x="20"
-              y="20"
-              width="80"
-              height="70"
-              rx="8"
-              fill="#A8D5AA"
-              stroke="#7CB47E"
-              strokeWidth="2"
-            />
-            {/* Calendar top */}
-            <rect x="20" y="20" width="80" height="20" rx="8" fill="#7CB47E" />
-            <rect x="20" y="32" width="80" height="8" fill="#7CB47E" />
-            {/* Calendar rings */}
-            <rect x="35" y="12" width="6" height="16" rx="3" fill="#5A9B5C" />
-            <rect x="79" y="12" width="6" height="16" rx="3" fill="#5A9B5C" />
-            {/* Calendar dots (grid) */}
-            {[0, 1, 2, 3].map((row) =>
-              [0, 1, 2, 3].map((col) => (
-                <rect
-                  key={`${row}-${col}`}
-                  x={32 + col * 16}
-                  y={48 + row * 10}
-                  width="10"
-                  height="6"
-                  rx="2"
-                  fill="#E8F5E9"
-                />
-              ))
-            )}
-            {/* Decorative swirl */}
-            <path
-              d="M95 15 Q105 5 110 15 Q115 25 105 30"
-              fill="none"
-              stroke="#C17F59"
-              strokeWidth="3"
-              strokeLinecap="round"
-            />
-            {/* Decorative leaves */}
-            <path d="M105 5 Q115 0 110 10" fill="#8B9A46" />
-            <path d="M108 8 Q118 5 112 15" fill="#6B7A36" />
-          </svg>
-        </div>
-      </div>
 
       {/* Habit Name */}
       <form.Field
@@ -406,7 +377,10 @@ export function HabitForm({ onSubmit, onCancel, isSubmitting = false }: HabitFor
         disabled={isSubmitting}
         className="w-full h-14 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground text-lg font-semibold disabled:opacity-50"
       >
-        {isSubmitting ? "Saving..." : "Save Habit"}
+        {isSubmitting 
+          ? (isEditMode ? "Updating..." : "Saving...") 
+          : (isEditMode ? "Update Habit" : "Save Habit")
+        }
       </Button>
     </form>
   );
