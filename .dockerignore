@@ -1,0 +1,31 @@
+# Dependencies
+node_modules
+
+# Build outputs
+.next
+*.tsbuildinfo
+
+# Environment files
+.env
+.env.local
+.env*.local
+
+# Development
+.git
+.gitignore
+.cursor
+.venv
+.ruff_cache
+
+# System files
+.DS_Store
+
+# Python stuff (not needed for production)
+*.py
+pyvenv.cfg
+requirements.txt
+bin/
+include/
+
+# Misc
+README.md
