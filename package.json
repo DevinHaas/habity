@@ -4,9 +4,9 @@
   "private": true,
   "packageManager": "bun@1.1.42",
   "scripts": {
-    "dev": "bun --bun next dev",
-    "build": "bun --bun next build",
-    "start": "bun run db:migrateprod && bun --bun next start",
+    "dev": "bun next dev",
+    "build": "bun next build",
+    "start": "bun run db:migrateprod && bun next start",
     "lint": "eslint",
     "db:studio": "drizzle-kit studio",
     "db:generate": "drizzle-kit generate",
