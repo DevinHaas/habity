@@ -52,6 +52,9 @@ COPY --from=prerelease /usr/src/app/next.config.ts .
 COPY --from=prerelease /usr/src/app/db db
 COPY --from=prerelease /usr/src/app/drizzle.config.ts .
 
+# Create .next/cache directory and set correct permissions
+RUN mkdir -p .next/cache/images && chown -R bun:bun /usr/src/app
+
 # run the app
 USER bun
 EXPOSE 3000/tcp
