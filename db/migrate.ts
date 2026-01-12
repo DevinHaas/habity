@@ -16,18 +16,20 @@ async function runMigration() {
   if (!dbUrl) {
     console.error("🚨 FATAL: No database URL found!");
     console.error("NODE_ENV:", process.env.NODE_ENV);
-    console.error("DATABASE_URL:", process.env.DATABASE_URL ? "Set" : "Not set");
-    console.error("DEV_DATABASE_URL:", process.env.DEV_DATABASE_URL ? "Set" : "Not set");
+    console.error(
+      "DATABASE_URL:",
+      process.env.DATABASE_URL ? "Set" : "Not set",
+    );
+    console.error(
+      "DEV_DATABASE_URL:",
+      process.env.DEV_DATABASE_URL ? "Set" : "Not set",
+    );
     throw new Error("No database url found");
   }
 
   console.log("Database URL found, connecting...");
 
-  const client = postgres(dbUrl, {
-    max: 1,
-    // SSL must be `require`. `true` or `verify-full` do not work since Railway uses self-signed certificates.
-    ssl: process.env.NODE_ENV === "production" ? "require" : undefined,
-  });
+  const client = postgres(dbUrl);
 
   const db = drizzle(client);
   try {
