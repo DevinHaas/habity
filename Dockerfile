@@ -23,6 +23,7 @@ COPY . .
 
 # [optional] tests & build
 ENV NODE_ENV=production
+RUN echo "NEXT_PUBLIC_APP_URL in prerelease stage: $NEXT_PUBLIC_APP_URL"
 RUN bun run build
 
 # copy production dependencies and source code into final image

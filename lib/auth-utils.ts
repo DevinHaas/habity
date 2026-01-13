@@ -1,4 +1,5 @@
 import { headers } from "next/headers";
+import { redirect } from "next/navigation";
 import { auth } from "./auth";
 
 export async function getSession() {
@@ -11,7 +12,7 @@ export async function getSession() {
 export async function getCurrentUserId(): Promise<string> {
   const session = await getSession();
   if (!session?.user?.id) {
-    throw new Error("Unauthorized");
+    redirect("/login");
   }
   return session.user.id;
 }
