@@ -18,12 +18,16 @@ RUN cd /temp/prod && bun install --frozen-lockfile --production
 # copy node_modules from temp directory
 # then copy all (non-ignored) project files into the image
 FROM base AS prerelease
+
+# Accept NEXT_PUBLIC_* build args that need to be available at build time
+ARG NEXT_PUBLIC_APP_URL
+
 COPY --from=install /temp/dev/node_modules node_modules
 COPY . .
 
 # [optional] tests & build
 ENV NODE_ENV=production
-RUN echo "NEXT_PUBLIC_APP_URL in prerelease stage: $NEXT_PUBLIC_APP_URL"
+ENV NEXT_PUBLIC_APP_URL=$NEXT_PUBLIC_APP_URL
 RUN bun run build
 
 # copy production dependencies and source code into final image
