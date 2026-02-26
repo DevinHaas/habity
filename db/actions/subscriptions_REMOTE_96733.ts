@@ -3,7 +3,6 @@
 import { db } from "@/db";
 import { subscriptions, type SubscriptionTier } from "@/db/schema";
 import { getCurrentUserId } from "@/lib/auth-utils";
-import { getEffectiveTier } from "@/lib/subscription-utils";
 import { eq } from "drizzle-orm";
 
 export async function getSubscription() {
@@ -21,7 +20,6 @@ export async function getSubscription() {
 
 export async function getUserTier(): Promise<SubscriptionTier> {
   const sub = await getSubscription();
-  return getEffectiveTier(sub);
 
   // If subscription is not active (canceled / past_due) treat as free
   if (sub.status !== "active") return "free";
@@ -36,12 +34,6 @@ export async function upsertSubscriptionFromWebhook(data: {
   status: string;
   currentPeriodEnd?: Date;
 }) {
-  console.log("[DB] upsertSubscriptionFromWebhook →", JSON.stringify(data));
-  try {
-    const result = await db
-      .insert(subscriptions)
-      .values({
-        userId: data.userId,
   await db
     .insert(subscriptions)
     .values({
@@ -60,24 +52,6 @@ export async function upsertSubscriptionFromWebhook(data: {
         tier: data.tier,
         status: data.status,
         currentPeriodEnd: data.currentPeriodEnd,
-      })
-      .onConflictDoUpdate({
-        target: subscriptions.userId,
-        set: {
-          polarSubscriptionId: data.polarSubscriptionId,
-          polarCustomerId: data.polarCustomerId,
-          tier: data.tier,
-          status: data.status,
-          currentPeriodEnd: data.currentPeriodEnd,
-          updatedAt: new Date(),
-        },
-      })
-      .returning();
-    console.log("[DB] ✅ upsert success, rows:", JSON.stringify(result));
-  } catch (err) {
-    console.error("[DB] ❌ upsert failed:", err);
-    throw err;
-  }
         updatedAt: new Date(),
       },
     });

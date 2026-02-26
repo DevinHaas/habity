@@ -22,10 +22,6 @@ export async function getSubscription() {
 export async function getUserTier(): Promise<SubscriptionTier> {
   const sub = await getSubscription();
   return getEffectiveTier(sub);
-
-  // If subscription is not active (canceled / past_due) treat as free
-  if (sub.status !== "active") return "free";
-  return sub.tier as SubscriptionTier;
 }
 
 export async function upsertSubscriptionFromWebhook(data: {
@@ -42,19 +38,6 @@ export async function upsertSubscriptionFromWebhook(data: {
       .insert(subscriptions)
       .values({
         userId: data.userId,
-  await db
-    .insert(subscriptions)
-    .values({
-      userId: data.userId,
-      polarSubscriptionId: data.polarSubscriptionId,
-      polarCustomerId: data.polarCustomerId,
-      tier: data.tier,
-      status: data.status,
-      currentPeriodEnd: data.currentPeriodEnd,
-    })
-    .onConflictDoUpdate({
-      target: subscriptions.userId,
-      set: {
         polarSubscriptionId: data.polarSubscriptionId,
         polarCustomerId: data.polarCustomerId,
         tier: data.tier,
@@ -78,7 +61,4 @@ export async function upsertSubscriptionFromWebhook(data: {
     console.error("[DB] ❌ upsert failed:", err);
     throw err;
   }
-        updatedAt: new Date(),
-      },
-    });
 }

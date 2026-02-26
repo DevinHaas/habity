@@ -3,7 +3,10 @@
 import { db } from "@/db";
 import { subscriptions, type SubscriptionTier } from "@/db/schema";
 import { getCurrentUserId } from "@/lib/auth-utils";
+<<<<<<< HEAD
 import { getEffectiveTier } from "@/lib/subscription-utils";
+=======
+>>>>>>> 2640b07 (feat: add Polar payments with Free/Pro/Max subscription tiers)
 import { eq } from "drizzle-orm";
 
 export async function getSubscription() {
@@ -21,11 +24,14 @@ export async function getSubscription() {
 
 export async function getUserTier(): Promise<SubscriptionTier> {
   const sub = await getSubscription();
+<<<<<<< HEAD
   return getEffectiveTier(sub);
+=======
 
   // If subscription is not active (canceled / past_due) treat as free
   if (sub.status !== "active") return "free";
   return sub.tier as SubscriptionTier;
+>>>>>>> 2640b07 (feat: add Polar payments with Free/Pro/Max subscription tiers)
 }
 
 export async function upsertSubscriptionFromWebhook(data: {
@@ -36,12 +42,14 @@ export async function upsertSubscriptionFromWebhook(data: {
   status: string;
   currentPeriodEnd?: Date;
 }) {
+<<<<<<< HEAD
   console.log("[DB] upsertSubscriptionFromWebhook →", JSON.stringify(data));
   try {
     const result = await db
       .insert(subscriptions)
       .values({
         userId: data.userId,
+=======
   await db
     .insert(subscriptions)
     .values({
@@ -55,11 +63,13 @@ export async function upsertSubscriptionFromWebhook(data: {
     .onConflictDoUpdate({
       target: subscriptions.userId,
       set: {
+>>>>>>> 2640b07 (feat: add Polar payments with Free/Pro/Max subscription tiers)
         polarSubscriptionId: data.polarSubscriptionId,
         polarCustomerId: data.polarCustomerId,
         tier: data.tier,
         status: data.status,
         currentPeriodEnd: data.currentPeriodEnd,
+<<<<<<< HEAD
       })
       .onConflictDoUpdate({
         target: subscriptions.userId,
@@ -78,7 +88,9 @@ export async function upsertSubscriptionFromWebhook(data: {
     console.error("[DB] ❌ upsert failed:", err);
     throw err;
   }
+=======
         updatedAt: new Date(),
       },
     });
+>>>>>>> 2640b07 (feat: add Polar payments with Free/Pro/Max subscription tiers)
 }
