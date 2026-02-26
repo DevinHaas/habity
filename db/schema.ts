@@ -121,6 +121,26 @@ export const userStats = pgTable('user_stats', {
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 
+// ==================== Subscriptions ====================
+
+export const subscriptionTierEnum = ['free', 'pro', 'max'] as const;
+export type SubscriptionTier = typeof subscriptionTierEnum[number];
+
+export const subscriptions = pgTable('subscriptions', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: text('user_id').notNull().unique().references(() => user.id, { onDelete: 'cascade' }),
+  polarSubscriptionId: text('polar_subscription_id').unique(),
+  polarCustomerId: text('polar_customer_id'),
+  tier: text('tier').notNull().default('free').$type<SubscriptionTier>(),
+  status: text('status').notNull().default('active'), // active, canceled, past_due
+  currentPeriodEnd: timestamp('current_period_end'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at')
+    .defaultNow()
+    .$onUpdate(() => new Date())
+    .notNull(),
+}, (table) => [index("subscriptions_userId_idx").on(table.userId)]);
+
 // ==================== Relations ====================
 
 export const userRelations = relations(user, ({ many, one }) => ({
@@ -174,6 +194,13 @@ export const goalsRelations = relations(goals, ({ one }) => ({
 export const userStatsRelations = relations(userStats, ({ one }) => ({
   user: one(user, {
     fields: [userStats.userId],
+    references: [user.id],
+  }),
+}));
+
+export const subscriptionsRelations = relations(subscriptions, ({ one }) => ({
+  user: one(user, {
+    fields: [subscriptions.userId],
     references: [user.id],
   }),
 }));
