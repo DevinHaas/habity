@@ -6,13 +6,13 @@ import { X } from "lucide-react";
 import { GoalForm } from "@/components/goals/GoalForm";
 import { Header } from "@/components/layout/Header";
 import { useGoals } from "@/hooks/useGoals";
-import { useStatsData } from "@/hooks";
+import { useHabits } from "@/hooks";
 import type { GoalFormValues } from "@/lib/validations/goal";
 
 export function AddGoalContent() {
   const router = useRouter();
   const { addGoal } = useGoals();
-  const { stats } = useStatsData();
+  const { stats } = useHabits();
 
   const handleSubmit = (values: GoalFormValues) => {
     addGoal({

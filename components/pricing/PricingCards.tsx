@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+=======
 import { useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { Check, Zap, Sparkles } from "lucide-react";
@@ -64,6 +65,7 @@ interface PricingCardsProps {
 
 export function PricingCards({ currentTier, hasPolarCustomer }: PricingCardsProps) {
   const [loading, setLoading] = useState<SubscriptionTier | null>(null);
+=======
   const searchParams = useSearchParams();
   const isSuccess = searchParams.get("success") === "true";
 
@@ -100,6 +102,7 @@ export function PricingCards({ currentTier, hasPolarCustomer }: PricingCardsProp
   };
 
   return (
+=======
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
       {plans.map((plan, index) => {
         const Icon = plan.icon;

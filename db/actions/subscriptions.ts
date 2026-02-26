@@ -42,6 +42,19 @@ export async function upsertSubscriptionFromWebhook(data: {
       .insert(subscriptions)
       .values({
         userId: data.userId,
+  await db
+    .insert(subscriptions)
+    .values({
+      userId: data.userId,
+      polarSubscriptionId: data.polarSubscriptionId,
+      polarCustomerId: data.polarCustomerId,
+      tier: data.tier,
+      status: data.status,
+      currentPeriodEnd: data.currentPeriodEnd,
+    })
+    .onConflictDoUpdate({
+      target: subscriptions.userId,
+      set: {
         polarSubscriptionId: data.polarSubscriptionId,
         polarCustomerId: data.polarCustomerId,
         tier: data.tier,
@@ -65,4 +78,7 @@ export async function upsertSubscriptionFromWebhook(data: {
     console.error("[DB] ❌ upsert failed:", err);
     throw err;
   }
+        updatedAt: new Date(),
+      },
+    });
 }
