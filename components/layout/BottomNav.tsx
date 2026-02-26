@@ -2,7 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import Link from "next/link";
-import { Home, BarChart3, Plus, Trophy } from "lucide-react";
+import { Home, BarChart3, Plus, Trophy, Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 
@@ -21,6 +21,11 @@ const navItems = [
     href: "/stats",
     icon: BarChart3,
     label: "Stats",
+  },
+  {
+    href: "/pricing",
+    icon: Sparkles,
+    label: "Upgrade",
   },
 ];
 
