@@ -2,19 +2,11 @@
 
 import { db } from '@/db';
 import { habits, habitCompletions } from '@/db/schema';
-import { eq, and, gte, desc, count, ilike } from 'drizzle-orm';
+import { eq, and, gte, desc, count } from 'drizzle-orm';
 import { getCurrentUserId } from '@/lib/auth-utils';
 import { getUserTier } from '@/db/actions/subscriptions';
 
-export async function checkHabitNameAvailability(name: string): Promise<boolean> {
-  const userId = await getCurrentUserId();
-  const [existing] = await db
-    .select({ id: habits.id })
-    .from(habits)
-    .where(and(eq(habits.userId, userId), ilike(habits.name, name.trim())))
-    .limit(1);
-  return !existing;
-}
+const FREE_HABIT_LIMIT = 3;
 
 export async function getHabits() {
   const userId = await getCurrentUserId();
@@ -30,8 +22,14 @@ export async function createHabit(data: Omit<typeof habits.$inferInsert, "userId
 
   const tier = await getUserTier();
   if (tier === 'free') {
-    const [{ value }] = await db.select({ value: count() }).from(habits).where(eq(habits.userId, userId));
-    if (value >= 5) throw new Error('HABIT_LIMIT_REACHED');
+    const [{ habitCount }] = await db
+      .select({ habitCount: count() })
+      .from(habits)
+      .where(eq(habits.userId, userId));
+
+    if (habitCount >= FREE_HABIT_LIMIT) {
+      throw new Error(`Free plan is limited to ${FREE_HABIT_LIMIT} habits. Upgrade to Pro for unlimited habits.`);
+    }
   }
 
   const [habit] = await db.insert(habits).values({ ...data, userId }).returning();
