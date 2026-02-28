@@ -3,11 +3,7 @@
     "allow": [
       "Bash(test:*)",
       "Bash(cat:*)",
-      "mcp__plugin_context-mode_context-mode__ctx_batch_execute",
-      "mcp__plugin_context-mode_context-mode__ctx_search",
-      "WebSearch",
-      "mcp__plugin_context-mode_context-mode__ctx_fetch_and_index",
-      "mcp__plugin_context-mode_context-mode__ctx_execute_file"
+      "Bash(grep -r \"http://\" /Users/devinhasler/projects/habity --include=\"*.ts\" --include=\"*.tsx\" --include=\"*.js\" --include=\"*.jsx\" --exclude-dir=node_modules --exclude-dir=.next 2>/dev/null | head -20)"
     ],
     "deny": [],
     "ask": []
