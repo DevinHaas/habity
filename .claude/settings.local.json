@@ -2,7 +2,8 @@
   "permissions": {
     "allow": [
       "Bash(test:*)",
-      "Bash(cat:*)"
+      "Bash(cat:*)",
+      "Bash(grep -r \"http://\" /Users/devinhasler/projects/habity --include=\"*.ts\" --include=\"*.tsx\" --include=\"*.js\" --include=\"*.jsx\" --exclude-dir=node_modules --exclude-dir=.next 2>/dev/null | head -20)"
     ],
     "deny": [],
     "ask": []

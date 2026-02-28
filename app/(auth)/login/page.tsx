@@ -46,12 +46,18 @@ export default function LoginPage() {
 
   const handleGithubLogin = async () => {
     setIsGithubLoading(true);
+    console.log("handleGithubLogin");
     try {
-      await signIn.social({
+      const result = await signIn.social({
         provider: "github",
         callbackURL: "/",
       });
-    } catch {
+
+      console.log("result");
+      console.log(result);
+    } catch (e) {
+      console.log("error");
+      console.log(e);
       setError("Failed to sign in with GitHub");
       setIsGithubLoading(false);
     }
@@ -68,7 +74,7 @@ export default function LoginPage() {
       <div className="relative bg-card/95 backdrop-blur-sm rounded-3xl shadow-2xl overflow-hidden border-2 border-orange/20">
         {/* Decorative top border */}
         <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-orange via-orange-light to-orange" />
-        
+
         {/* Corner decorations */}
         <div className="absolute top-4 left-4 w-8 h-8 border-l-2 border-t-2 border-orange/30 rounded-tl-lg" />
         <div className="absolute top-4 right-4 w-8 h-8 border-r-2 border-t-2 border-orange/30 rounded-tr-lg" />
