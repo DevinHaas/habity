@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { auth } from "@/lib/auth";
+import { headers } from "next/headers";
 
 // Routes that don't require authentication
 const publicRoutes = ["/login", "/signup"];
@@ -7,7 +9,10 @@ const publicRoutes = ["/login", "/signup"];
 // Routes that should be accessible without auth (API routes handled by Better Auth)
 const authApiRoutes = ["/api/auth"];
 
-export function proxy(request: NextRequest) {
+export async function proxy(request: NextRequest) {
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
   const { pathname } = request.nextUrl;
 
   // Allow public routes
@@ -20,11 +25,8 @@ export function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // Check for session cookie (Better Auth uses this cookie name)
-  const sessionCookie = request.cookies.get("better-auth.session_token");
-
   // If no session, redirect to login
-  if (!sessionCookie) {
+  if (!session) {
     const loginUrl = new URL("/login", request.url);
     loginUrl.searchParams.set("callbackUrl", pathname);
     return NextResponse.redirect(loginUrl);
