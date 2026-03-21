@@ -20,7 +20,7 @@ import {
   getCriteriaUnit,
   type GoalFormValues,
 } from "@/lib/validations/goal";
-import { useHabits } from "@/hooks";
+import { useHabitsData } from "@/hooks";
 import { generateEmojiFromName } from "@/hooks/useGoals";
 import { useState, useEffect, useCallback } from "react";
 
@@ -34,7 +34,7 @@ interface GoalFormProps {
 const QUICK_EMOJIS = ["🎧", "👟", "💆", "🎮", "📱", "✈️", "🎁", "💰", "🏆", "🎯"];
 
 export function GoalForm({ onSubmit, onCancel, initialValues }: GoalFormProps) {
-  const { habits } = useHabits();
+  const { habits } = useHabitsData();
   const [previewEmoji, setPreviewEmoji] = useState<string>("🎯");
   const [customEmoji, setCustomEmoji] = useState<string>("");
   const [currentName, setCurrentName] = useState<string>(initialValues?.name || "");

@@ -1,9 +1,10 @@
 "use client";
 
-import { useCallback, useMemo } from "react";
+import { useMemo } from "react";
 import { useGoalsQuery } from "./queries/useGoalsQuery";
 import { useAddGoal, useUpdateGoal, useDeleteGoal } from "./mutations/useGoalMutations";
-import { useHabits } from "./useHabits";
+import { useHabitsData } from "./useHabitsData";
+import { useStatsData } from "./useStatsData";
 import type { goals as goalsTable } from "@/db/schema";
 
 export type CriteriaType = "coins" | "streak" | "completions" | "level";
@@ -125,7 +126,8 @@ export function generateEmojiFromName(name: string): string {
 }
 
 export function useGoals() {
-  const { habits, stats } = useHabits();
+  const { habits } = useHabitsData();
+  const { stats } = useStatsData();
 
   // Queries
   const { data: dbGoals = [], isPending } = useGoalsQuery();
@@ -150,38 +152,36 @@ export function useGoals() {
     }));
   }, [dbGoals]);
 
-  // Calculate current value based on criteria type
-  const getCurrentValue = useCallback(
-    (goal: Goal): number => {
-      switch (goal.criteriaType) {
-        case "coins":
-          return stats.coins;
-        case "streak":
-          if (goal.habitId) {
-            const habit = habits.find((h) => h.id === goal.habitId);
-            return habit?.streak ?? 0;
-          }
-          // Return best streak across all habits
-          return Math.max(...habits.map((h) => h.streak), 0);
-        case "completions":
-          if (goal.habitId) {
-            const habit = habits.find((h) => h.id === goal.habitId);
-            return habit ? habit.streak * 7 : 0;
-          }
-          return stats.totalHabitsCompleted;
-        case "level":
-          return stats.level;
-        default:
-          return 0;
-      }
-    },
-    [habits, stats]
-  );
-
   // Calculate goals with progress
   const goalsWithProgress = useMemo((): GoalWithProgress[] => {
     return goals.map((goal) => {
-      const currentValue = getCurrentValue(goal);
+      let currentValue: number;
+      switch (goal.criteriaType) {
+        case "coins":
+          currentValue = stats.coins;
+          break;
+        case "streak":
+          if (goal.habitId) {
+            const habit = habits.find((h) => h.id === goal.habitId);
+            currentValue = habit?.streak ?? 0;
+          } else {
+            currentValue = Math.max(...habits.map((h) => h.streak), 0);
+          }
+          break;
+        case "completions":
+          if (goal.habitId) {
+            const habit = habits.find((h) => h.id === goal.habitId);
+            currentValue = habit ? habit.streak * 7 : 0;
+          } else {
+            currentValue = stats.totalHabitsCompleted;
+          }
+          break;
+        case "level":
+          currentValue = stats.level;
+          break;
+        default:
+          currentValue = 0;
+      }
       const progress = Math.min((currentValue / goal.targetValue) * 100, 100);
       const isCompleted = currentValue >= goal.targetValue;
 
@@ -192,52 +192,42 @@ export function useGoals() {
         isCompleted,
       };
     });
-  }, [goals, getCurrentValue]);
+  }, [goals, habits, stats]);
 
-  const addGoal = useCallback(
-    (goalData: Omit<Goal, "id" | "createdAt" | "emoji"> & { emoji?: string }) => {
-      addMutation.mutate({
-        name: goalData.name,
-        category: goalData.category || null,
-        imageUrl: goalData.imageUrl || null,
-        emoji: goalData.emoji || generateEmojiFromName(goalData.name),
-        criteriaType: goalData.criteriaType,
-        targetValue: goalData.targetValue,
-        habitId: goalData.habitId || null,
-      });
-    },
-    [addMutation]
-  );
+  function addGoal(goalData: Omit<Goal, "id" | "createdAt" | "emoji"> & { emoji?: string }) {
+    addMutation.mutate({
+      name: goalData.name,
+      category: goalData.category || null,
+      imageUrl: goalData.imageUrl || null,
+      emoji: goalData.emoji || generateEmojiFromName(goalData.name),
+      criteriaType: goalData.criteriaType,
+      targetValue: goalData.targetValue,
+      habitId: goalData.habitId || null,
+    });
+  }
 
-  const removeGoal = useCallback(
-    (id: string) => {
-      deleteMutation.mutate(id);
-    },
-    [deleteMutation]
-  );
+  function removeGoal(id: string) {
+    deleteMutation.mutate(id);
+  }
 
-  const updateGoal = useCallback(
-    (id: string, updates: Partial<Omit<Goal, "id" | "createdAt">>) => {
-      const updatedData: Record<string, unknown> = {};
+  function updateGoal(id: string, updates: Partial<Omit<Goal, "id" | "createdAt">>) {
+    const updatedData: Record<string, unknown> = {};
 
-      if (updates.name !== undefined) updatedData.name = updates.name;
-      if (updates.category !== undefined) updatedData.category = updates.category;
-      if (updates.imageUrl !== undefined) updatedData.imageUrl = updates.imageUrl;
-      if (updates.criteriaType !== undefined) updatedData.criteriaType = updates.criteriaType;
-      if (updates.targetValue !== undefined) updatedData.targetValue = updates.targetValue;
-      if (updates.habitId !== undefined) updatedData.habitId = updates.habitId;
+    if (updates.name !== undefined) updatedData.name = updates.name;
+    if (updates.category !== undefined) updatedData.category = updates.category;
+    if (updates.imageUrl !== undefined) updatedData.imageUrl = updates.imageUrl;
+    if (updates.criteriaType !== undefined) updatedData.criteriaType = updates.criteriaType;
+    if (updates.targetValue !== undefined) updatedData.targetValue = updates.targetValue;
+    if (updates.habitId !== undefined) updatedData.habitId = updates.habitId;
 
-      // Auto-generate emoji if name changed but emoji wasn't provided
-      if (updates.name && !updates.emoji) {
-        updatedData.emoji = generateEmojiFromName(updates.name);
-      } else if (updates.emoji !== undefined) {
-        updatedData.emoji = updates.emoji;
-      }
+    if (updates.name && !updates.emoji) {
+      updatedData.emoji = generateEmojiFromName(updates.name);
+    } else if (updates.emoji !== undefined) {
+      updatedData.emoji = updates.emoji;
+    }
 
-      updateMutation.mutate({ id, data: updatedData });
-    },
-    [updateMutation]
-  );
+    updateMutation.mutate({ id, data: updatedData });
+  }
 
   // Get total coins (for display on goals page)
   const totalCoins = stats.coins;

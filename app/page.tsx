@@ -7,35 +7,70 @@ import { HabitList } from "@/components/home/HabitList";
 import { BottomNav, FloatingAddButton } from "@/components/layout/BottomNav";
 import { Header } from "@/components/layout/Header";
 import { SuccessScreen } from "@/components/shared/SuccessScreen";
-import { useHabits, useTimeOfDay } from "@/hooks";
-
-function getTodayString(): string {
-  // Use local date formatting (not UTC) for consistent behavior
-  const date = new Date();
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-}
+import { useHabitsData, useStatsData, useTimeOfDay, type Habit } from "@/hooks";
+import {
+  useToggleHabit,
+  useUpdateHabit,
+  useDeleteHabit,
+} from "@/hooks/mutations/useHabitMutations";
+import { getTodayString as getToday } from "@/lib/habits-utils";
+import { toast } from "@/lib/ToastProvider";
+import { useSoundEffects } from "@/hooks/useSoundEffects";
 
 function getSuccessShownKey(): string {
-  return `successShown_${getTodayString()}`;
+  return `successShown_${getToday()}`;
 }
 
 export default function HomePage() {
-  const { 
-    habits, 
-    toggleHabit, 
-    updateHabit,
-    removeHabit,
-    stats, 
-    getCompletedCount, 
-    getTotalCount 
-  } = useHabits();
+  const { habits, isPending } = useHabitsData();
+  const { stats } = useStatsData();
   const { isDay } = useTimeOfDay();
-  
-  const completedCount = getCompletedCount();
-  const totalCount = getTotalCount();
+  const toggleMutation = useToggleHabit();
+  const updateMutation = useUpdateHabit();
+  const deleteMutation = useDeleteHabit();
+  const { playCoin } = useSoundEffects();
+  const todayString = getToday();
+
+  const completedCount = habits.filter((h) => h.completed).length;
+  const totalCount = habits.length;
+
+  function toggleHabit(id: string) {
+    const habit = habits.find((h) => h.id === id);
+    if (!habit) return;
+    const wasCompleted = habit.completed;
+    toggleMutation.mutate(
+      { habitId: id, date: todayString, completed: !habit.completed },
+      {
+        onSuccess: () => {
+          if (!wasCompleted) {
+            playCoin();
+            toast("+10 XP", { description: "Habit completed!" });
+          }
+        },
+      },
+    );
+  }
+
+  function updateHabit(
+    id: string,
+    habit: Partial<Omit<Habit, "id" | "streak" | "completed">>,
+  ) {
+    updateMutation.mutate({
+      id,
+      data: {
+        name: habit.name,
+        icon: habit.icon,
+        duration: habit.duration,
+        color: habit.color,
+        repeatDays: habit.repeatDays,
+        timeOfDay: habit.timeOfDay,
+      },
+    });
+  }
+
+  function removeHabit(id: string) {
+    deleteMutation.mutate(id);
+  }
 
   // Success screen state
   const [showSuccessScreen, setShowSuccessScreen] = useState(false);
@@ -45,8 +80,10 @@ export default function HomePage() {
   useEffect(() => {
     const allCompleted = completedCount === totalCount && totalCount > 0;
     const successKey = getSuccessShownKey();
-    const hasShownToday = typeof window !== "undefined" && localStorage.getItem(successKey) === "true";
-    
+    const hasShownToday =
+      typeof window !== "undefined" &&
+      localStorage.getItem(successKey) === "true";
+
     // Only show success screen when transitioning from "not all completed" to "all completed"
     // and it hasn't been shown today
     if (allCompleted && !previousAllCompletedRef.current && !hasShownToday) {
@@ -56,20 +93,22 @@ export default function HomePage() {
       }
       setShowSuccessScreen(true);
     }
-    
+
     // Reset localStorage flag if not all habits are completed (allows re-triggering if user uncompletes and completes again)
     if (!allCompleted) {
       if (typeof window !== "undefined") {
         localStorage.removeItem(successKey);
       }
     }
-    
+
     // Track previous state to detect transitions
     previousAllCompletedRef.current = allCompleted;
   }, [completedCount, totalCount]);
 
   // Background image changes based on time of day
-  const backgroundImage = isDay ? "/hero_background.jpeg" : "/hero_background_night.jpeg";
+  const backgroundImage = isDay
+    ? "/hero_background.jpeg"
+    : "/hero_background_night.jpeg";
 
   return (
     <div className="min-h-screen bg-card flex flex-col max-w-2xl mx-auto">
@@ -100,7 +139,6 @@ export default function HomePage() {
 
         {/* Content */}
         <div className="relative z-10 h-full flex flex-col justify-between mx-auto max-w-lg w-full px-6 pt-16 pb-12">
-
           {/* Motivational text */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -132,8 +170,9 @@ export default function HomePage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
           >
-            <HabitList 
-              habits={habits} 
+            <HabitList
+              habits={habits}
+              isPending={isPending}
               onToggleHabit={toggleHabit}
               onEditHabit={updateHabit}
               onDeleteHabit={removeHabit}

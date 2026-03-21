@@ -11,7 +11,7 @@ import { HabitCalendar } from "@/components/stats/HabitCalendar";
 import { BottomNav } from "@/components/layout/BottomNav";
 import { Header } from "@/components/layout/Header";
 import { SettingsModal } from "@/components/shared/SettingsModal";
-import { useHabits } from "@/hooks";
+import { useHabitsData, useStatsData, useCompletionHistory } from "@/hooks";
 import { cn } from "@/lib/utils";
 
 type TimePeriod = "weekly" | "monthly" | "yearly";
@@ -21,7 +21,9 @@ export default function StatsPage() {
   const [timePeriod, setTimePeriod] = useState<TimePeriod>("weekly");
   const [analyticsView, setAnalyticsView] = useState<AnalyticsView>("calendar");
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const { stats, habits, levelName, getCompletionsForDate } = useHabits();
+  const { habits } = useHabitsData();
+  const { stats, levelName } = useStatsData();
+  const { getCompletionsForDate } = useCompletionHistory();
 
   // Get progress percentage based on time period
   const getProgressForPeriod = (period: TimePeriod) => {

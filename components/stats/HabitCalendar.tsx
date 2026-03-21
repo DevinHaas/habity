@@ -13,7 +13,7 @@ import {
 } from "react-day-picker";
 import { cn } from "@/lib/utils";
 import { buttonVariants } from "@/components/ui/button";
-import type { HabitCompletion } from "@/hooks/useHabits";
+import type { HabitCompletion } from "@/lib/habits-utils";
 
 type TimePeriod = "weekly" | "monthly" | "yearly";
 

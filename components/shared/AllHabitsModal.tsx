@@ -12,7 +12,7 @@ import {
   DrawerClose,
 } from "@/components/ui/drawer";
 import { cn } from "@/lib/utils";
-import type { Habit, TimeOfDay } from "@/hooks/useHabits";
+import type { Habit, TimeOfDay } from "@/lib/habits-utils";
 
 interface AllHabitsModalProps {
   isOpen: boolean;

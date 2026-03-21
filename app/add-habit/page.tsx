@@ -5,13 +5,13 @@ import { motion } from "framer-motion";
 import { X } from "lucide-react";
 import { HabitForm } from "@/components/habits/HabitForm";
 import { Header } from "@/components/layout/Header";
-import { useHabits } from "@/hooks";
+import { useStatsData } from "@/hooks";
 import { useAddHabit } from "@/hooks/mutations/useHabitMutations";
 import type { HabitFormValues } from "@/lib/validations/habit";
 
 export default function AddHabitPage() {
   const router = useRouter();
-  const { stats } = useHabits();
+  const { stats } = useStatsData();
   const addHabit = useAddHabit();
 
   const handleSubmit = (values: HabitFormValues) => {

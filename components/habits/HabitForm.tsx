@@ -22,6 +22,7 @@ import {
 } from "@/lib/validations/habit";
 import { useFeedback } from "@/hooks";
 import { useState, useMemo } from "react";
+import { checkNameAvailability } from "@/db/actions/habits";
 
 const DAYS = [
   { label: "M", value: 0 },
@@ -59,16 +60,15 @@ interface HabitFormProps {
   isEditMode?: boolean;
 }
 
-export function HabitForm({ 
-  onSubmit, 
-  onCancel, 
+export function HabitForm({
+  onSubmit,
+  onCancel,
   isSubmitting = false,
   initialValues,
   isEditMode = false,
 }: HabitFormProps) {
   const { onHabitAdded } = useFeedback();
   const [showCalendar, setShowCalendar] = useState(false);
-
   const defaultValues = useMemo(() => {
     if (initialValues) {
       return {
@@ -105,13 +105,25 @@ export function HabitForm({
       }}
       className="space-y-6"
     >
-
       {/* Habit Name */}
       <form.Field
         name="name"
         validators={{
           onChange: ({ value }) =>
             !value.trim() ? "Habit name is required" : undefined,
+          onChangeAsync: async ({ value }) => {
+            if (
+              isEditMode &&
+              value.trim() === (initialValues?.name ?? "").trim()
+            ) {
+              return undefined;
+            }
+            const isAvailable = await checkNameAvailability(value);
+            return isAvailable
+              ? undefined
+              : "You aleady have a habit with this name";
+          },
+          onChangeAsyncDebounceMs: 300,
         }}
       >
         {(field) => (
@@ -127,11 +139,17 @@ export function HabitForm({
               onBlur={field.handleBlur}
               className="bg-background border-border rounded-xl h-12"
             />
-            {field.state.meta.isTouched && field.state.meta.errors?.length > 0 && (
-              <p className="text-sm text-destructive">
-                {field.state.meta.errors[0]}
+            {field.state.meta.isValidating && (
+              <p className="text-sm text-muted-foreground">
+                Checking availability...
               </p>
             )}
+            {field.state.meta.isTouched &&
+              field.state.meta.errors.length > 0 && (
+                <p className="text-sm text-destructive">
+                  {field.state.meta.errors[0]}
+                </p>
+              )}
           </div>
         )}
       </form.Field>
@@ -152,7 +170,7 @@ export function HabitForm({
                     "h-10 w-10 rounded-lg text-xl flex items-center justify-center transition-colors",
                     field.state.value === icon
                       ? "bg-primary/20 ring-2 ring-primary"
-                      : "bg-muted hover:bg-muted/80"
+                      : "bg-muted hover:bg-muted/80",
                   )}
                 >
                   {icon}
@@ -256,7 +274,10 @@ export function HabitForm({
         {(field) => (
           <div className="space-y-2">
             <Label className="text-muted-foreground">Duration</Label>
-            <Select value={field.state.value} onValueChange={field.handleChange}>
+            <Select
+              value={field.state.value}
+              onValueChange={field.handleChange}
+            >
               <SelectTrigger className="h-12 rounded-xl">
                 <SelectValue />
               </SelectTrigger>
@@ -291,7 +312,7 @@ export function HabitForm({
                       "flex-1 flex items-center justify-center gap-2 h-12 rounded-xl text-sm font-medium transition-colors",
                       isSelected
                         ? "bg-foreground text-background"
-                        : "bg-muted text-muted-foreground hover:bg-muted/80"
+                        : "bg-muted text-muted-foreground hover:bg-muted/80",
                     )}
                   >
                     <Icon className="h-4 w-4" />
@@ -328,7 +349,7 @@ export function HabitForm({
                     onClick={() => {
                       if (isSelected) {
                         field.handleChange(
-                          field.state.value.filter((d) => d !== day.value)
+                          field.state.value.filter((d) => d !== day.value),
                         );
                       } else {
                         field.handleChange([...field.state.value, day.value]);
@@ -338,7 +359,7 @@ export function HabitForm({
                       "h-10 w-10 rounded-full text-sm font-medium transition-colors",
                       isSelected
                         ? "bg-foreground text-background"
-                        : "bg-muted text-muted-foreground hover:bg-muted/80"
+                        : "bg-muted text-muted-foreground hover:bg-muted/80",
                     )}
                   >
                     {day.label}
@@ -346,11 +367,12 @@ export function HabitForm({
                 );
               })}
             </div>
-            {field.state.meta.isTouched && field.state.meta.errors?.length > 0 && (
-              <p className="text-sm text-destructive">
-                {field.state.meta.errors[0]}
-              </p>
-            )}
+            {field.state.meta.isTouched &&
+              field.state.meta.errors?.length > 0 && (
+                <p className="text-sm text-destructive">
+                  {field.state.meta.errors[0]}
+                </p>
+              )}
           </div>
         )}
       </form.Field>
@@ -374,13 +396,16 @@ export function HabitForm({
       {/* Submit Button */}
       <Button
         type="submit"
-        disabled={isSubmitting}
+        disabled={isSubmitting || !form.state.canSubmit}
         className="w-full h-14 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground text-lg font-semibold disabled:opacity-50"
       >
-        {isSubmitting 
-          ? (isEditMode ? "Updating..." : "Saving...") 
-          : (isEditMode ? "Update Habit" : "Save Habit")
-        }
+        {isSubmitting
+          ? isEditMode
+            ? "Updating..."
+            : "Saving..."
+          : isEditMode
+            ? "Update Habit"
+            : "Save Habit"}
       </Button>
     </form>
   );

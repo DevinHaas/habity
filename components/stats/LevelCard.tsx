@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { motion } from "framer-motion";
-import { getLevelProgress } from "@/hooks/useHabits";
+import { getLevelProgress } from "@/lib/habits-utils";
 
 interface LevelCardProps {
   level: number;

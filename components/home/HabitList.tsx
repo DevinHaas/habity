@@ -13,11 +13,12 @@ import {
   DrawerTitle,
   DrawerClose,
 } from "@/components/ui/drawer";
-import type { Habit, TimeOfDay } from "@/hooks/useHabits";
+import type { Habit, TimeOfDay } from "@/lib/habits-utils";
 import type { HabitFormValues } from "@/lib/validations/habit";
 
 interface HabitListProps {
   habits: Habit[];
+  isPending?: boolean;
   onToggleHabit: (id: string) => void;
   onEditHabit: (id: string, data: Partial<Omit<Habit, "id" | "streak" | "completed">>) => void;
   onDeleteHabit: (id: string) => void;
@@ -27,13 +28,14 @@ interface HabitListProps {
 
 const TIME_ORDER: TimeOfDay[] = ["morning", "day", "evening"];
 
-export function HabitList({ 
-  habits, 
-  onToggleHabit, 
+export function HabitList({
+  habits,
+  isPending,
+  onToggleHabit,
   onEditHabit,
   onDeleteHabit,
-  completedCount, 
-  totalCount 
+  completedCount,
+  totalCount
 }: HabitListProps) {
   const [showAllHabitsModal, setShowAllHabitsModal] = useState(false);
   const [editingHabit, setEditingHabit] = useState<Habit | null>(null);
@@ -103,7 +105,7 @@ export function HabitList({
             },
           }}
         >
-          {!hasAnyHabits ? (
+          {!isPending && !hasAnyHabits ? (
             <div className="rounded-2xl bg-card p-8 text-center">
               <p className="text-muted-foreground">No habits for today</p>
               <a

@@ -6,7 +6,7 @@ import { Clock, Check, Pencil, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useFeedback } from "@/hooks";
 import { Confetti } from "@/components/shared/Confetti";
-import type { Habit } from "@/hooks/useHabits";
+import type { Habit } from "@/lib/habits-utils";
 
 interface HabitCardProps {
   habit: Habit;

@@ -3,7 +3,7 @@
 import { motion } from "framer-motion";
 import { Sun, SunDim, Moon } from "lucide-react";
 import { HabitCard } from "@/components/habits/HabitCard";
-import type { Habit, TimeOfDay } from "@/hooks/useHabits";
+import type { Habit, TimeOfDay } from "@/lib/habits-utils";
 
 interface TimelineGroupProps {
   timeOfDay: TimeOfDay;

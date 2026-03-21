@@ -8,12 +8,12 @@ import { GoalCard } from "@/components/goals/GoalCard";
 import { BottomNav, FloatingAddButton } from "@/components/layout/BottomNav";
 import { Header } from "@/components/layout/Header";
 import { useGoals, type GoalWithProgress } from "@/hooks/useGoals";
-import { useHabits, useTimeOfDay } from "@/hooks";
+import { useStatsData, useTimeOfDay } from "@/hooks";
 import { Button } from "@/components/ui/button";
 
 export default function GoalsPage() {
   const { goals, totalCoins, removeGoal } = useGoals();
-  const { stats } = useHabits();
+  const { stats } = useStatsData();
   const { isDay } = useTimeOfDay();
 
   const completedGoals = goals.filter((g: GoalWithProgress) => g.isCompleted);
