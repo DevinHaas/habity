@@ -1,0 +1,1 @@
+CREATE INDEX "habits_name_idx" ON "habits" USING hash ("name");
