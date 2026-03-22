@@ -15,7 +15,6 @@ export function AddHabitContent() {
   const addHabit = useAddHabit();
 
   const handleSubmit = (values: HabitFormValues) => {
-    // Transform form values to database schema
     const habitData = {
       name: values.name,
       icon: values.icon,
@@ -38,10 +37,8 @@ export function AddHabitContent() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Global Header with coins and streak */}
       <Header coins={stats.coins} streak={stats.currentStreak} />
 
-      {/* Page Header */}
       <div className="mx-auto max-w-lg px-6 py-4">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold text-foreground">New habit</h1>
@@ -55,7 +52,6 @@ export function AddHabitContent() {
         </div>
       </div>
 
-      {/* Form */}
       <main className="mx-auto max-w-lg px-6 pb-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}

@@ -15,6 +15,10 @@ export function ProGate({ children }: { children: React.ReactNode }) {
   if (isLoading) return null;
   if (hasPro) return <>{children}</>;
 
+export function UpgradePrompt({
+  title = "Pro Feature",
+  message = "Upgrade to Pro to unlock this feature and track your long-term progress.",
+}: UpgradePromptProps) {
   return (
     <div className="flex min-h-[60vh] flex-col items-center justify-center px-6 text-center">
       <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-orange/10">
@@ -42,4 +46,10 @@ export function ProGate({ children }: { children: React.ReactNode }) {
       </p>
     </div>
   );
+}
+
+/** @deprecated Use UpgradePrompt directly */
+export function ProGate({ children, hasPro }: { children: React.ReactNode; hasPro: boolean }) {
+  if (hasPro) return <>{children}</>;
+  return <UpgradePrompt />;
 }

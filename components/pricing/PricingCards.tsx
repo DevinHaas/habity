@@ -1,12 +1,14 @@
 "use client";
 
 import { useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
-import { Check, Zap, Crown, Sparkles } from "lucide-react";
+import { Check, Zap, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import type { SubscriptionTier } from "@/db/schema";
+import { useSubscriptionQuery } from "@/hooks/queries/useSubscriptionQuery";
 
 interface Plan {
   key: SubscriptionTier;
@@ -28,7 +30,8 @@ const plans: Plan[] = [
     icon: Sparkles,
     iconColor: "text-muted-foreground",
     features: [
-      "Unlimited habits",
+      "Up to 5 habits",
+      "1 goal included",
       "Daily habit tracking",
       "Streak tracking",
       "Basic stats & analytics",
@@ -46,23 +49,10 @@ const plans: Plan[] = [
     highlighted: true,
     features: [
       "Everything in Free",
-      "Goals & milestones",
+      "Unlimited habits",
+      "Unlimited goals",
       "Advanced progress tracking",
       "Priority support",
-    ],
-  },
-  {
-    key: "max",
-    name: "Max",
-    price: 10,
-    description: "For power users",
-    icon: Crown,
-    iconColor: "text-amber-500",
-    features: [
-      "Everything in Pro",
-      "Detailed analytics",
-      "Custom goal criteria",
-      "Early access to new features",
     ],
   },
 ];
@@ -74,6 +64,12 @@ interface PricingCardsProps {
 
 export function PricingCards({ currentTier, hasPolarCustomer }: PricingCardsProps) {
   const [loading, setLoading] = useState<SubscriptionTier | null>(null);
+  const searchParams = useSearchParams();
+  const isSuccess = searchParams.get("success") === "true";
+
+  // On ?success=true, poll every 2s until the webhook has updated the subscription.
+  // Shared cache means AddHabitGate / AddGoalGate also pick up the update automatically.
+  useSubscriptionQuery({ pollUntilActive: isSuccess });
 
   const handleSubscribe = async (tier: SubscriptionTier) => {
     if (tier === "free") return;
@@ -104,13 +100,11 @@ export function PricingCards({ currentTier, hasPolarCustomer }: PricingCardsProp
   };
 
   return (
-    <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
       {plans.map((plan, index) => {
         const Icon = plan.icon;
         const isCurrent = plan.key === currentTier;
-        const isDowngrade =
-          (currentTier === "max" && plan.key === "pro") ||
-          (currentTier !== "free" && plan.key === "free");
+        const isDowngrade = currentTier !== "free" && plan.key === "free";
 
         return (
           <motion.div
