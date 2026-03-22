@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { Check, Zap, Sparkles } from "lucide-react";
@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import type { SubscriptionTier } from "@/db/schema";
 import { useSubscriptionQuery } from "@/hooks/queries/useSubscriptionQuery";
+import { UpgradeScreen } from "@/components/shared/UpgradeScreen";
 
 interface Plan {
   key: SubscriptionTier;
@@ -64,12 +65,22 @@ interface PricingCardsProps {
 
 export function PricingCards({ currentTier, hasPolarCustomer }: PricingCardsProps) {
   const [loading, setLoading] = useState<SubscriptionTier | null>(null);
+  const [showUpgradeScreen, setShowUpgradeScreen] = useState(false);
+  const upgradeShown = useRef(false);
   const searchParams = useSearchParams();
   const isSuccess = searchParams.get("success") === "true";
 
   // On ?success=true, poll every 2s until the webhook has updated the subscription.
   // Shared cache means AddHabitGate / AddGoalGate also pick up the update automatically.
-  useSubscriptionQuery({ pollUntilActive: isSuccess });
+  const { data: subscriptionData } = useSubscriptionQuery({ pollUntilActive: isSuccess });
+
+  // Show upgrade screen once when polling confirms pro is active
+  useEffect(() => {
+    if (isSuccess && subscriptionData?.tier === "pro" && !upgradeShown.current) {
+      upgradeShown.current = true;
+      setShowUpgradeScreen(true);
+    }
+  }, [isSuccess, subscriptionData?.tier]);
 
   const handleSubscribe = async (tier: SubscriptionTier) => {
     if (tier === "free") return;
@@ -100,6 +111,10 @@ export function PricingCards({ currentTier, hasPolarCustomer }: PricingCardsProp
   };
 
   return (
+    <>
+      {showUpgradeScreen && (
+        <UpgradeScreen onDismiss={() => setShowUpgradeScreen(false)} />
+      )}
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
       {plans.map((plan, index) => {
         const Icon = plan.icon;
@@ -122,7 +137,7 @@ export function PricingCards({ currentTier, hasPolarCustomer }: PricingCardsProp
           >
             {plan.highlighted && (
               <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                <span className="rounded-full bg-orange px-3 py-1 text-xs font-bold text-white shadow">
+                <span className="rounded-full bg-orange px-3 py-1 text-xs font-bold text-white shadow font-cinzel tracking-wide">
                   Most Popular
                 </span>
               </div>
@@ -146,14 +161,14 @@ export function PricingCards({ currentTier, hasPolarCustomer }: PricingCardsProp
                 <Icon className={cn("h-5 w-5", plan.iconColor)} />
               </div>
               <div>
-                <h3 className="font-bold text-foreground">{plan.name}</h3>
-                <p className="text-xs text-muted-foreground">{plan.description}</p>
+                <h3 className={cn("font-bold font-cinzel", plan.key === "pro" ? "title-pro" : "title-free")}>{plan.name}</h3>
+                <p className="text-xs text-muted-foreground font-body">{plan.description}</p>
               </div>
             </div>
 
             <div className="mb-6">
               <div className="flex items-end gap-1">
-                <span className="text-4xl font-extrabold text-foreground">
+                <span className={cn("text-4xl font-extrabold font-cinzel", plan.key === "pro" ? "title-pro" : "title-free")}>
                   ${plan.price}
                 </span>
                 {plan.price > 0 && (
@@ -166,7 +181,7 @@ export function PricingCards({ currentTier, hasPolarCustomer }: PricingCardsProp
               {plan.features.map((feature) => (
                 <li key={feature} className="flex items-start gap-2">
                   <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-                  <span className="text-sm text-foreground/80">{feature}</span>
+                  <span className="text-sm text-foreground/80 font-body">{feature}</span>
                 </li>
               ))}
             </ul>
@@ -219,5 +234,6 @@ export function PricingCards({ currentTier, hasPolarCustomer }: PricingCardsProp
         );
       })}
     </div>
+    </>
   );
 }

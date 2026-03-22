@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Nunito, Nunito_Sans } from "next/font/google";
+import { Nunito, Nunito_Sans, Cinzel, Crimson_Text } from "next/font/google";
 import { Providers } from "@/lib/providers";
 import "./globals.css";
 
@@ -13,6 +13,19 @@ const nunitoSans = Nunito_Sans({
   variable: "--font-mono",
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
+});
+
+const cinzel = Cinzel({
+  variable: "--font-cinzel",
+  subsets: ["latin"],
+  weight: ["700", "900"],
+});
+
+const crimsonText = Crimson_Text({
+  variable: "--font-body",
+  subsets: ["latin"],
+  weight: ["400", "600"],
+  style: ["normal", "italic"],
 });
 
 export const metadata: Metadata = {
@@ -41,7 +54,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${nunito.variable} ${nunitoSans.variable} antialiased`}
+        className={`${nunito.variable} ${nunitoSans.variable} ${cinzel.variable} ${crimsonText.variable} antialiased`}
       >
         <Providers>{children}</Providers>
       </body>
