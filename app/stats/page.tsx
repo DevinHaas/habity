@@ -12,6 +12,7 @@ import { BottomNav } from "@/components/layout/BottomNav";
 import { Header } from "@/components/layout/Header";
 import { SettingsModal } from "@/components/shared/SettingsModal";
 import { useHabitsData, useStatsData, useCompletionHistory } from "@/hooks";
+import { useSession } from "@/lib/auth-client";
 import { cn } from "@/lib/utils";
 
 type TimePeriod = "weekly" | "monthly" | "yearly";
@@ -24,6 +25,7 @@ export default function StatsPage() {
   const { habits } = useHabitsData();
   const { stats, levelName } = useStatsData();
   const { getCompletionsForDate } = useCompletionHistory();
+  const { data: session } = useSession();
 
   // Get progress percentage based on time period
   const getProgressForPeriod = (period: TimePeriod) => {
@@ -74,6 +76,7 @@ export default function StatsPage() {
             currentBadge={stats.currentBadge}
             points={stats.points}
             totalPoints={stats.totalPoints}
+            userName={session?.user?.name}
           />
         </motion.section>
 

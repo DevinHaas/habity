@@ -10,6 +10,7 @@ interface LevelCardProps {
   currentBadge: number;
   points: number;
   totalPoints: number;
+  userName?: string;
 }
 
 export function LevelCard({
@@ -18,6 +19,7 @@ export function LevelCard({
   currentBadge,
   points,
   totalPoints,
+  userName,
 }: LevelCardProps) {
   const progress = getLevelProgress(points, totalPoints);
 
@@ -28,6 +30,18 @@ export function LevelCard({
       transition={{ duration: 0.5 }}
       className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#1a1625] via-[#2d2640] to-[#1a1625] p-4 shadow-xl"
     >
+      {/* User Name */}
+      {userName && (
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.3 }}
+          className="absolute top-4 left-4 z-10 text-sm font-semibold text-white"
+        >
+          {userName}
+        </motion.p>
+      )}
+
       {/* Decorative background pattern */}
       <div className="absolute inset-0 opacity-10">
         <div className="absolute top-0 right-0 w-64 h-64 bg-purple-500 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
