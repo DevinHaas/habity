@@ -5,6 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { Trophy, ChevronRight, Plus } from "lucide-react";
 import { GoalCard } from "@/components/goals/GoalCard";
+import { GoalListSkeleton } from "@/components/goals/GoalListSkeleton";
 import { BottomNav, FloatingAddButton } from "@/components/layout/BottomNav";
 import { Header } from "@/components/layout/Header";
 import { useGoals, type GoalWithProgress } from "@/hooks/useGoals";
@@ -12,7 +13,7 @@ import { useTimeOfDay, useStatsData } from "@/hooks";
 import { Button } from "@/components/ui/button";
 
 export function GoalsContent() {
-  const { goals, totalCoins, removeGoal } = useGoals();
+  const { goals, totalCoins, removeGoal, isPending } = useGoals();
   const { stats } = useStatsData();
   const { isDay } = useTimeOfDay();
 
@@ -99,7 +100,9 @@ export function GoalsContent() {
               )}
             </div>
 
-            {activeGoals.length === 0 ? (
+            {isPending ? (
+              <GoalListSkeleton count={3} />
+            ) : activeGoals.length === 0 ? (
               <div className="bg-card rounded-2xl p-8 text-center border border-border">
                 <div className="w-16 h-16 rounded-full bg-muted mx-auto mb-4 flex items-center justify-center">
                   <Trophy className="w-8 h-8 text-muted-foreground" />

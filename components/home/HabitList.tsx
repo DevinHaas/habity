@@ -13,6 +13,7 @@ import {
   DrawerTitle,
   DrawerClose,
 } from "@/components/ui/drawer";
+import { HabitListSkeleton } from "./HabitListSkeleton";
 import type { Habit, TimeOfDay } from "@/lib/habits-utils";
 import type { HabitFormValues } from "@/lib/validations/habit";
 
@@ -81,6 +82,10 @@ export function HabitList({
     }
   };
 
+  if (isPending) {
+    return <HabitListSkeleton />;
+  }
+
   return (
     <>
       <div className="space-y-4">
@@ -105,7 +110,7 @@ export function HabitList({
             },
           }}
         >
-          {!isPending && !hasAnyHabits ? (
+          {!hasAnyHabits ? (
             <div className="rounded-2xl bg-card p-8 text-center">
               <p className="text-muted-foreground">No habits for today</p>
               <a
