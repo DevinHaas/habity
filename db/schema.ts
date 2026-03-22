@@ -135,8 +135,8 @@ export const userStats = pgTable("user_stats", {
 
 // ==================== Subscriptions ====================
 
-export const subscriptionTierEnum = ["free", "pro"] as const;
-export type SubscriptionTier = (typeof subscriptionTierEnum)[number];
+export const subscriptionTierEnum = ['free', 'pro'] as const;
+export type SubscriptionTier = typeof subscriptionTierEnum[number];
 
 export const subscriptions = pgTable(
   "subscriptions",
