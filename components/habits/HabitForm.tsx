@@ -109,9 +109,12 @@ export function HabitForm({
       <form.Field
         name="name"
         validators={{
+          onMount: ({ value }) =>
+            !value.trim() ? "Habit name is required" : undefined,
           onChange: ({ value }) =>
             !value.trim() ? "Habit name is required" : undefined,
           onChangeAsync: async ({ value }) => {
+            if (!value.trim()) return undefined;
             if (
               isEditMode &&
               value.trim() === (initialValues?.name ?? "").trim()
@@ -394,19 +397,33 @@ export function HabitForm({
       </form.Field>
 
       {/* Submit Button */}
-      <Button
-        type="submit"
-        disabled={isSubmitting || !form.state.canSubmit}
-        className="w-full h-14 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground text-lg font-semibold disabled:opacity-50"
+      <form.Subscribe
+        selector={(state) => ({
+          canSubmit: state.canSubmit,
+          isValidating: state.isValidating,
+        })}
       >
-        {isSubmitting
-          ? isEditMode
-            ? "Updating..."
-            : "Saving..."
-          : isEditMode
-            ? "Update Habit"
-            : "Save Habit"}
-      </Button>
+        {({ canSubmit, isValidating }) => (
+          <Button
+            type="submit"
+            disabled={isSubmitting || !canSubmit || isValidating}
+            className={cn(
+              "w-full h-14 rounded-full text-lg font-semibold transition-colors",
+              isSubmitting || !canSubmit || isValidating
+                ? "bg-muted text-muted-foreground cursor-not-allowed"
+                : "bg-primary hover:bg-primary/90 text-primary-foreground",
+            )}
+          >
+            {isSubmitting
+              ? isEditMode
+                ? "Updating..."
+                : "Saving..."
+              : isEditMode
+                ? "Update Habit"
+                : "Save Habit"}
+          </Button>
+        )}
+      </form.Subscribe>
     </form>
   );
 }
