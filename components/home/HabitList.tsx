@@ -110,7 +110,7 @@ export function HabitList({
             },
           }}
         >
-          {!isPending && !hasAnyHabits ? (
+          {!hasAnyHabits ? (
             <div className="rounded-2xl bg-card p-8 text-center">
               <p className="text-muted-foreground">No habits for today</p>
               <a
