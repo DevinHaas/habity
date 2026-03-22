@@ -6,11 +6,14 @@ export function useSoundEffects() {
   const [playComplete] = useSound("/sounds/finish.wav", { volume: 0.5 });
   const [playLevelUp] = useSound("/sounds/level_up.wav", { volume: 0.6 });
   const [playCoin] = useSound("/sounds/coin.wav", { volume: 0.5 });
-  
+
   // These will need sound files to be added
   const [playStreak] = useSound("/sounds/finish.wav", { volume: 0.4 }); // Using finish as fallback
   const [playSuccess] = useSound("/sounds/finish.wav", { volume: 0.5 }); // Using finish as fallback
   const [playTap] = useSound("/sounds/finish.wav", { volume: 0.1 }); // Using finish as fallback
+  const [playUpgrade] = useSound("/sounds/upgrade.wav", {
+    volume: 0.8,
+  }); // Using finish as fallback
 
   return {
     playComplete,
@@ -19,5 +22,6 @@ export function useSoundEffects() {
     playStreak,
     playSuccess,
     playTap,
+    playUpgrade,
   };
 }
