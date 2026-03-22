@@ -2,11 +2,14 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Volume2, VolumeX } from "lucide-react";
+import { X, Volume2, VolumeX, LogOut } from "lucide-react";
 import { useAmbientSound } from "@/hooks";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import { signOut } from "@/lib/auth-client";
+import { useRouter } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -16,11 +19,20 @@ interface SettingsModalProps {
 export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
   const { isPlaying, toggleAmbient, volume, setVolume } = useAmbientSound();
   const [localVolume, setLocalVolume] = useState(volume);
+  const router = useRouter();
+  const queryClient = useQueryClient();
 
   // Sync local volume with hook volume
   useEffect(() => {
     setLocalVolume(volume);
   }, [volume]);
+
+  const handleLogout = async () => {
+    queryClient.clear();
+    await signOut();
+    onClose();
+    router.push("/login");
+  };
 
   const handleVolumeChange = (newVolume: number) => {
     setLocalVolume(newVolume);
@@ -112,6 +124,16 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                       background: `linear-gradient(to right, var(--primary) 0%, var(--primary) ${localVolume * 100}%, var(--muted) ${localVolume * 100}%, var(--muted) 100%)`,
                     }}
                   />
+                </div>
+                {/* Logout */}
+                <div className="pt-2 border-t">
+                  <button
+                    onClick={handleLogout}
+                    className="w-full flex items-center justify-center gap-2 rounded-md border border-red-500 px-4 py-2 text-sm font-medium text-red-500 hover:bg-red-500/10 transition-colors"
+                  >
+                    <LogOut className="h-4 w-4" />
+                    Log Out
+                  </button>
                 </div>
               </CardContent>
             </Card>
