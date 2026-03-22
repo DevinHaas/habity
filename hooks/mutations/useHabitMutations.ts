@@ -110,7 +110,7 @@ export function useAddHabit() {
       queryClient.setQueryData<Habit[]>(queryKeys.habits.all, (old) => [
         ...(old || []),
         {
-          ...newHabit,
+          newHabit,
           id: `temp-${Date.now()}`,
           createdAt: new Date(),
         } as Habit,
