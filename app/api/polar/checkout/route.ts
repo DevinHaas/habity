@@ -17,6 +17,8 @@ export async function POST(req: NextRequest) {
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
 
+  console.log(`[Polar Checkout] Creating checkout for userId="${session.user.id}" email="${session.user.email}" productId="${productId}"`);
+
   const checkout = await polar.checkouts.create({
     products: [productId],
     customerEmail: session.user.email,
@@ -30,5 +32,6 @@ export async function POST(req: NextRequest) {
     successUrl: `${appUrl}/pricing?success=true`,
   });
 
+  console.log(`[Polar Checkout] ✅ Created checkout id="${checkout.id}" url="${checkout.url}"`);
   return NextResponse.json({ url: checkout.url });
 }
