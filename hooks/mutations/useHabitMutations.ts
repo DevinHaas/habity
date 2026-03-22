@@ -1,15 +1,15 @@
-'use client';
+"use client";
 
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
-  createHabit,
   deleteHabit,
   updateHabit,
   toggleCompletion,
-} from '@/db/actions/habits';
-import { incrementPoints } from '@/db/actions/stats';
-import { queryKeys } from '@/lib/query-keys';
-import type { habits, habitCompletions } from '@/db/schema';
+  createHabit,
+} from "@/db/actions/habits";
+import { incrementPoints } from "@/db/actions/stats";
+import { queryKeys } from "@/lib/query-keys";
+import type { habits, habitCompletions } from "@/db/schema";
 
 type Habit = typeof habits.$inferSelect;
 type HabitCompletion = typeof habitCompletions.$inferSelect;
@@ -41,7 +41,7 @@ export function useToggleHabit() {
 
       // Snapshot previous value
       const previousCompletions = queryClient.getQueryData<HabitCompletion[]>(
-        queryKeys.habits.completions(date)
+        queryKeys.habits.completions(date),
       );
 
       // Optimistically update
@@ -60,7 +60,7 @@ export function useToggleHabit() {
             ];
           }
           return old?.filter((c) => c.habitId !== habitId) || [];
-        }
+        },
       );
 
       return { previousCompletions };
@@ -70,7 +70,7 @@ export function useToggleHabit() {
       if (context?.previousCompletions) {
         queryClient.setQueryData(
           queryKeys.habits.completions(date),
-          context.previousCompletions
+          context.previousCompletions,
         );
       }
     },
@@ -86,8 +86,8 @@ export function useToggleHabit() {
       queryClient.invalidateQueries({
         predicate: (query) =>
           Array.isArray(query.queryKey) &&
-          query.queryKey[0] === 'completions' &&
-          query.queryKey[1] === 'history',
+          query.queryKey[0] === "completions" &&
+          query.queryKey[1] === "history",
       });
       queryClient.invalidateQueries({ queryKey: queryKeys.stats.all });
     },
@@ -103,14 +103,14 @@ export function useAddHabit() {
       await queryClient.cancelQueries({ queryKey: queryKeys.habits.all });
 
       const previousHabits = queryClient.getQueryData<Habit[]>(
-        queryKeys.habits.all
+        queryKeys.habits.all,
       );
 
       // Optimistically add the habit
       queryClient.setQueryData<Habit[]>(queryKeys.habits.all, (old) => [
         ...(old || []),
         {
-          ...newHabit,
+          newHabit,
           id: `temp-${Date.now()}`,
           createdAt: new Date(),
         } as Habit,
@@ -138,12 +138,13 @@ export function useDeleteHabit() {
       await queryClient.cancelQueries({ queryKey: queryKeys.habits.all });
 
       const previousHabits = queryClient.getQueryData<Habit[]>(
-        queryKeys.habits.all
+        queryKeys.habits.all,
       );
 
       // Optimistically remove the habit
-      queryClient.setQueryData<Habit[]>(queryKeys.habits.all, (old) =>
-        old?.filter((h) => h.id !== habitId) || []
+      queryClient.setQueryData<Habit[]>(
+        queryKeys.habits.all,
+        (old) => old?.filter((h) => h.id !== habitId) || [],
       );
 
       return { previousHabits };
@@ -163,18 +164,24 @@ export function useUpdateHabit() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: Partial<Omit<Habit, 'id' | 'createdAt'>> }) =>
-      updateHabit(id, data),
+    mutationFn: ({
+      id,
+      data,
+    }: {
+      id: string;
+      data: Partial<Omit<Habit, "id" | "createdAt">>;
+    }) => updateHabit(id, data),
     onMutate: async ({ id, data }) => {
       await queryClient.cancelQueries({ queryKey: queryKeys.habits.all });
 
       const previousHabits = queryClient.getQueryData<Habit[]>(
-        queryKeys.habits.all
+        queryKeys.habits.all,
       );
 
       // Optimistically update the habit
-      queryClient.setQueryData<Habit[]>(queryKeys.habits.all, (old) =>
-        old?.map((h) => (h.id === id ? { ...h, ...data } : h)) || []
+      queryClient.setQueryData<Habit[]>(
+        queryKeys.habits.all,
+        (old) => old?.map((h) => (h.id === id ? { ...h, ...data } : h)) || [],
       );
 
       return { previousHabits };

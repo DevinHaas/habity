@@ -15,7 +15,7 @@ export async function getHabits() {
     .orderBy(habits.createdAt);
 }
 
-export async function checkNameAvailability(name: string) {
+export async function createHabit(data: Omit<typeof habits.$inferInsert, "userId" | "id" | "createdAt">) {
   const userId = await getCurrentUserId();
 
   const tier = await getUserTier();

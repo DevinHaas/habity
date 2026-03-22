@@ -22,7 +22,7 @@ import {
 } from "@/lib/validations/habit";
 import { useFeedback } from "@/hooks";
 import { useState, useMemo } from "react";
-import { checkNameAvailability } from "@/db/actions/habits";
+import { createHabit } from "@/db/actions/habits";
 
 const DAYS = [
   { label: "M", value: 0 },
