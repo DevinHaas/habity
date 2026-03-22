@@ -2,8 +2,9 @@
 
 import { db } from '@/db';
 import { goals } from '@/db/schema';
-import { eq, and } from 'drizzle-orm';
+import { eq, and, count } from 'drizzle-orm';
 import { getCurrentUserId } from '@/lib/auth-utils';
+import { getUserTier } from '@/db/actions/subscriptions';
 
 export async function getGoals() {
   const userId = await getCurrentUserId();
@@ -12,6 +13,13 @@ export async function getGoals() {
 
 export async function createGoal(data: Omit<typeof goals.$inferInsert, 'userId'>) {
   const userId = await getCurrentUserId();
+
+  const tier = await getUserTier();
+  if (tier === 'free') {
+    const [{ value }] = await db.select({ value: count() }).from(goals).where(eq(goals.userId, userId));
+    if (value >= 1) throw new Error('GOAL_LIMIT_REACHED');
+  }
+
   const [goal] = await db.insert(goals).values({ ...data, userId }).returning();
   return goal;
 }

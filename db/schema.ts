@@ -1,15 +1,5 @@
-import {
-  pgTable,
-  uuid,
-  text,
-  integer,
-  timestamp,
-  date,
-  boolean,
-  index,
-  uniqueIndex,
-} from "drizzle-orm/pg-core";
-import { relations } from "drizzle-orm";
+import { pgTable, uuid, text, integer, timestamp, date, boolean, index, uniqueIndex } from 'drizzle-orm/pg-core';
+import { relations } from 'drizzle-orm';
 
 // ==================== Better Auth Tables ====================
 
@@ -87,25 +77,17 @@ export const verification = pgTable(
 
 // ==================== App Tables ====================
 
-export const habits = pgTable(
-  "habits",
-  {
-    id: uuid("id").primaryKey().defaultRandom(),
-    userId: text("user_id")
-      .notNull()
-      .references(() => user.id, { onDelete: "cascade" }),
-    name: text("name").notNull(),
-    icon: text("icon").notNull(),
-    duration: text("duration"),
-    color: text("color").notNull(),
-    repeatDays: integer("repeat_days").array().notNull(),
-    timeOfDay: text("time_of_day").notNull().default("morning"),
-    createdAt: timestamp("created_at").defaultNow().notNull(),
-  },
-  (table) => [
-    uniqueIndex("habits_userId_name_unique_idx").on(table.userId, table.name),
-  ],
-);
+export const habits = pgTable('habits', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: text('user_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
+  name: text('name').notNull(),
+  icon: text('icon').notNull(),
+  duration: text('duration'),
+  color: text('color').notNull(),
+  repeatDays: integer('repeat_days').array().notNull(),
+  timeOfDay: text('time_of_day').notNull().default('morning'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+}, (table) => [uniqueIndex("habits_userId_name_unique_idx").on(table.userId, table.name)]);
 
 export const habitCompletions = pgTable("habit_completions", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -151,6 +133,26 @@ export const userStats = pgTable("user_stats", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// ==================== Subscriptions ====================
+
+export const subscriptionTierEnum = ['free', 'pro'] as const;
+export type SubscriptionTier = typeof subscriptionTierEnum[number];
+
+export const subscriptions = pgTable('subscriptions', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: text('user_id').notNull().unique().references(() => user.id, { onDelete: 'cascade' }),
+  polarSubscriptionId: text('polar_subscription_id').unique(),
+  polarCustomerId: text('polar_customer_id'),
+  tier: text('tier').notNull().default('free').$type<SubscriptionTier>(),
+  status: text('status').notNull().default('active'), // active, canceled, past_due
+  currentPeriodEnd: timestamp('current_period_end'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at')
+    .defaultNow()
+    .$onUpdate(() => new Date())
+    .notNull(),
+}, (table) => [index("subscriptions_userId_idx").on(table.userId)]);
+
 // ==================== Relations ====================
 
 export const userRelations = relations(user, ({ many, one }) => ({
@@ -159,6 +161,7 @@ export const userRelations = relations(user, ({ many, one }) => ({
   habits: many(habits),
   goals: many(goals),
   stats: one(userStats),
+  subscriptions: many(subscriptions),
 }));
 
 export const sessionRelations = relations(session, ({ one }) => ({
@@ -207,6 +210,13 @@ export const goalsRelations = relations(goals, ({ one }) => ({
 export const userStatsRelations = relations(userStats, ({ one }) => ({
   user: one(user, {
     fields: [userStats.userId],
+    references: [user.id],
+  }),
+}));
+
+export const subscriptionsRelations = relations(subscriptions, ({ one }) => ({
+  user: one(user, {
+    fields: [subscriptions.userId],
     references: [user.id],
   }),
 }));

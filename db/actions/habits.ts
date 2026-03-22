@@ -1,9 +1,10 @@
 "use server";
 
-import { db } from "@/db";
-import { habits, habitCompletions } from "@/db/schema";
-import { eq, and, gte, desc } from "drizzle-orm";
-import { getCurrentUserId } from "@/lib/auth-utils";
+import { db } from '@/db';
+import { habits, habitCompletions } from '@/db/schema';
+import { eq, and, gte, desc, count } from 'drizzle-orm';
+import { getCurrentUserId } from '@/lib/auth-utils';
+import { getUserTier } from '@/db/actions/subscriptions';
 
 export async function getHabits() {
   const userId = await getCurrentUserId();
@@ -16,21 +17,14 @@ export async function getHabits() {
 
 export async function checkNameAvailability(name: string) {
   const userId = await getCurrentUserId();
-  const match = await db.query.habits.findFirst({
-    columns: { id: true },
-    where: and(eq(habits.name, name), eq(habits.userId, userId)),
-  });
-  return !match;
-}
 
-export async function createHabit(
-  data: Omit<typeof habits.$inferInsert, "userId">,
-) {
-  const userId = await getCurrentUserId();
-  const [habit] = await db
-    .insert(habits)
-    .values({ ...data, userId })
-    .returning();
+  const tier = await getUserTier();
+  if (tier === 'free') {
+    const [{ value }] = await db.select({ value: count() }).from(habits).where(eq(habits.userId, userId));
+    if (value >= 5) throw new Error('HABIT_LIMIT_REACHED');
+  }
+
+  const [habit] = await db.insert(habits).values({ ...data, userId }).returning();
   return habit;
 }
 

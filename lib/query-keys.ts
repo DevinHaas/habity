@@ -7,4 +7,5 @@ export const queryKeys = {
   },
   goals: { all: ['goals'] as const },
   stats: { all: ['stats'] as const },
+  subscription: { all: ['subscription'] as const },
 };

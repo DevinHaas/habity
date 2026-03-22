@@ -22,6 +22,13 @@
       "when": 1774079868457,
       "tag": "0002_yellow_fabian_cortez",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1774166564648,
+      "tag": "0003_quiet_the_enforcers",
+      "breakpoints": true
     }
   ]
 }

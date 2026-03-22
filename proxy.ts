@@ -7,7 +7,7 @@ import { headers } from "next/headers";
 const publicRoutes = ["/login", "/signup"];
 
 // Routes that should be accessible without auth (API routes handled by Better Auth)
-const authApiRoutes = ["/api/auth"];
+const authApiRoutes = ["/api/auth", "/api/polar/webhooks"];
 
 export async function proxy(request: NextRequest) {
   const session = await auth.api.getSession({
