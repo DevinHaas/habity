@@ -1,4 +1,4 @@
-import { pgTable, uuid, text, integer, timestamp, date, boolean, index } from 'drizzle-orm/pg-core';
+import { pgTable, uuid, text, integer, timestamp, date, boolean, index, uniqueIndex } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 
 // ==================== Better Auth Tables ====================
@@ -87,7 +87,7 @@ export const habits = pgTable('habits', {
   repeatDays: integer('repeat_days').array().notNull(),
   timeOfDay: text('time_of_day').notNull().default('morning'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
-}, (table) => [index("habits_userId_idx").on(table.userId)]);
+}, (table) => [uniqueIndex("habits_userId_name_unique_idx").on(table.userId, table.name)]);
 
 export const habitCompletions = pgTable('habit_completions', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -123,7 +123,7 @@ export const userStats = pgTable('user_stats', {
 
 // ==================== Subscriptions ====================
 
-export const subscriptionTierEnum = ['free', 'pro', 'max'] as const;
+export const subscriptionTierEnum = ['free', 'pro'] as const;
 export type SubscriptionTier = typeof subscriptionTierEnum[number];
 
 export const subscriptions = pgTable('subscriptions', {
@@ -149,6 +149,7 @@ export const userRelations = relations(user, ({ many, one }) => ({
   habits: many(habits),
   goals: many(goals),
   stats: one(userStats),
+  subscriptions: many(subscriptions),
 }));
 
 export const sessionRelations = relations(session, ({ one }) => ({

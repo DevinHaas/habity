@@ -12,8 +12,22 @@
     {
       "idx": 1,
       "version": "7",
-      "when": 1772111654277,
-      "tag": "0001_unusual_black_tom",
+      "when": 1774078337450,
+      "tag": "0001_silly_wallop",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1774079868457,
+      "tag": "0002_yellow_fabian_cortez",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1774166564648,
+      "tag": "0003_quiet_the_enforcers",
       "breakpoints": true
     }
   ]
