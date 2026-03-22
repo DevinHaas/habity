@@ -2,9 +2,19 @@
 
 import { db } from '@/db';
 import { habits, habitCompletions } from '@/db/schema';
-import { eq, and, gte, desc, count } from 'drizzle-orm';
+import { eq, and, gte, desc, count, ilike } from 'drizzle-orm';
 import { getCurrentUserId } from '@/lib/auth-utils';
 import { getUserTier } from '@/db/actions/subscriptions';
+
+export async function checkHabitNameAvailability(name: string): Promise<boolean> {
+  const userId = await getCurrentUserId();
+  const [existing] = await db
+    .select({ id: habits.id })
+    .from(habits)
+    .where(and(eq(habits.userId, userId), ilike(habits.name, name.trim())))
+    .limit(1);
+  return !existing;
+}
 
 export async function getHabits() {
   const userId = await getCurrentUserId();

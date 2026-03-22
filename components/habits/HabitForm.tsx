@@ -22,7 +22,7 @@ import {
 } from "@/lib/validations/habit";
 import { useFeedback } from "@/hooks";
 import { useState, useMemo } from "react";
-import { createHabit } from "@/db/actions/habits";
+import { createHabit, checkHabitNameAvailability } from "@/db/actions/habits";
 
 const DAYS = [
   { label: "M", value: 0 },
@@ -121,7 +121,7 @@ export function HabitForm({
             ) {
               return undefined;
             }
-            const isAvailable = await checkNameAvailability(value);
+            const isAvailable = await checkHabitNameAvailability(value);
             return isAvailable
               ? undefined
               : "You aleady have a habit with this name";
