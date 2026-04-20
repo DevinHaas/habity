@@ -8,7 +8,6 @@ export const polar = new Polar({
 
 export const POLAR_PRODUCT_IDS = {
   pro: process.env.POLAR_PRO_PRODUCT_ID!,
-  max: process.env.POLAR_MAX_PRODUCT_ID!,
 } as const;
 
 export type PolarProductKey = keyof typeof POLAR_PRODUCT_IDS;

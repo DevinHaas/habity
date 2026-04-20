@@ -7,7 +7,6 @@ import { motion } from "framer-motion";
 import { Check, Zap, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { toast } from "sonner";
 import type { SubscriptionTier } from "@/db/schema";
 import { useSubscriptionQuery } from "@/hooks/queries/useSubscriptionQuery";
 
@@ -120,7 +119,7 @@ export function PricingCards({ currentTier, hasPolarCustomer }: PricingCardsProp
               plan.highlighted
                 ? "border-orange/60 bg-orange/5 shadow-lg shadow-orange/10"
                 : "border-border bg-card",
-              isCurrent && "ring-2 ring-primary"
+              isCurrent && "ring-2 ring-primary",
             )}
           >
             {plan.highlighted && (
@@ -143,7 +142,7 @@ export function PricingCards({ currentTier, hasPolarCustomer }: PricingCardsProp
               <div
                 className={cn(
                   "flex h-10 w-10 items-center justify-center rounded-2xl",
-                  plan.highlighted ? "bg-orange/15" : "bg-muted"
+                  plan.highlighted ? "bg-orange/15" : "bg-muted",
                 )}
               >
                 <Icon className={cn("h-5 w-5", plan.iconColor)} />
@@ -160,7 +159,9 @@ export function PricingCards({ currentTier, hasPolarCustomer }: PricingCardsProp
                   ${plan.price}
                 </span>
                 {plan.price > 0 && (
-                  <span className="mb-1 text-sm text-muted-foreground">/mo</span>
+                  <span className="mb-1 text-sm text-muted-foreground">
+                    /mo
+                  </span>
                 )}
               </div>
             </div>
@@ -206,16 +207,18 @@ export function PricingCards({ currentTier, hasPolarCustomer }: PricingCardsProp
               </Button>
             ) : (
               <Button
-                onClick={() => handleSubscribe(plan.key)}
-                disabled={loading === plan.key}
+                onClick={() => checkout({ tier: plan.key })}
+                disabled={isPending && pendingVars?.tier === plan.key}
                 className={cn(
                   "rounded-2xl font-semibold",
                   plan.highlighted
                     ? "bg-orange hover:bg-orange/90 text-white"
-                    : ""
+                    : "",
                 )}
               >
-                {loading === plan.key ? "Redirecting…" : `Upgrade to ${plan.name}`}
+                {isPending && pendingVars?.tier === plan.key
+                  ? "Redirecting…"
+                  : `Upgrade to ${plan.name}`}
               </Button>
             )}
           </motion.div>

@@ -1,14 +1,11 @@
 import { Suspense } from "react";
-import { getSubscription } from "@/db/actions/subscriptions";
 import { PricingCards } from "@/components/pricing/PricingCards";
 import { BottomNav } from "@/components/layout/BottomNav";
 import { Header } from "@/components/layout/Header";
-import { getHabits } from "@/db/actions/habits";
 import { getStats } from "@/db/actions/stats";
-import type { SubscriptionTier } from "@/db/schema";
 
 async function PricingContent() {
-  const [sub, stats] = await Promise.all([getSubscription(), getStats()]);
+  const stats = await getStats();
 
   return (
     <>
@@ -23,10 +20,7 @@ async function PricingContent() {
           </p>
         </div>
 
-        <PricingCards
-          currentTier={(sub.tier ?? "free") as SubscriptionTier}
-          hasPolarCustomer={!!sub.polarCustomerId}
-        />
+        <PricingCards />
       </main>
       <BottomNav />
     </>
