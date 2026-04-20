@@ -1,5 +1,10 @@
-import { AddGoalGate } from "@/components/goals/AddGoalGate";
+import { ProGate } from "@/components/shared/ProGate";
+import { AddGoalContent } from "@/components/goals/AddGoalContent";
 
 export default function AddGoalPage() {
-  return <AddGoalGate />;
+  return (
+    <ProGate>
+      <AddGoalContent />
+    </ProGate>
+  );
 }

@@ -135,23 +135,30 @@ export const userStats = pgTable("user_stats", {
 
 // ==================== Subscriptions ====================
 
-export const subscriptionTierEnum = ['free', 'pro', 'max'] as const;
-export type SubscriptionTier = typeof subscriptionTierEnum[number];
+export const subscriptionTierEnum = ["free", "pro"] as const;
+export type SubscriptionTier = (typeof subscriptionTierEnum)[number];
 
-export const subscriptions = pgTable('subscriptions', {
-  id: uuid('id').primaryKey().defaultRandom(),
-  userId: text('user_id').notNull().unique().references(() => user.id, { onDelete: 'cascade' }),
-  polarSubscriptionId: text('polar_subscription_id').unique(),
-  polarCustomerId: text('polar_customer_id'),
-  tier: text('tier').notNull().default('free').$type<SubscriptionTier>(),
-  status: text('status').notNull().default('active'), // active, canceled, past_due
-  currentPeriodEnd: timestamp('current_period_end'),
-  createdAt: timestamp('created_at').defaultNow().notNull(),
-  updatedAt: timestamp('updated_at')
-    .defaultNow()
-    .$onUpdate(() => new Date())
-    .notNull(),
-}, (table) => [index("subscriptions_userId_idx").on(table.userId)]);
+export const subscriptions = pgTable(
+  "subscriptions",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: text("user_id")
+      .notNull()
+      .unique()
+      .references(() => user.id, { onDelete: "cascade" }),
+    polarSubscriptionId: text("polar_subscription_id").unique(),
+    polarCustomerId: text("polar_customer_id"),
+    tier: text("tier").notNull().default("free").$type<SubscriptionTier>(),
+    status: text("status").notNull().default("active"), // active, canceled, past_due
+    currentPeriodEnd: timestamp("current_period_end"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at")
+      .defaultNow()
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (table) => [index("subscriptions_userId_idx").on(table.userId)],
+);
 
 // ==================== Relations ====================
 

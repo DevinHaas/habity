@@ -84,7 +84,6 @@ export function AmbientSoundProvider({ children }: { children: ReactNode }) {
       audioRef.current.volume = volume;
       audioRef.current.play().catch(() => {
         // Auto-play might be blocked, that's okay
-        console.log("Ambient sound auto-play blocked. User interaction required.");
       });
     } else if (audioRef.current) {
       audioRef.current.pause();

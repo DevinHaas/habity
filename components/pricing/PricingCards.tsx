@@ -1,24 +1,12 @@
 "use client";
 
-<<<<<<< HEAD
-import { useState, useRef, useEffect } from "react";
-import { useSearchParams } from "next/navigation";
-import { motion } from "framer-motion";
-import { Check, Zap, Sparkles } from "lucide-react";
-=======
-import { useState } from "react";
 import { motion } from "framer-motion";
 import { Check, Zap, Crown, Sparkles } from "lucide-react";
->>>>>>> 2640b07 (feat: add Polar payments with Free/Pro/Max subscription tiers)
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { toast } from "sonner";
 import type { SubscriptionTier } from "@/db/schema";
-<<<<<<< HEAD
-import { useSubscriptionQuery } from "@/hooks/queries/useSubscriptionQuery";
-import { UpgradeScreen } from "@/components/shared/UpgradeScreen";
-=======
->>>>>>> 2640b07 (feat: add Polar payments with Free/Pro/Max subscription tiers)
+import { useSubscription } from "@/hooks/useSubscription";
+import { useCheckout } from "@/hooks/useCheckout";
 
 interface Plan {
   key: SubscriptionTier;
@@ -40,12 +28,8 @@ const plans: Plan[] = [
     icon: Sparkles,
     iconColor: "text-muted-foreground",
     features: [
-<<<<<<< HEAD
       "Up to 5 habits",
       "1 goal included",
-=======
-      "Unlimited habits",
->>>>>>> 2640b07 (feat: add Polar payments with Free/Pro/Max subscription tiers)
       "Daily habit tracking",
       "Streak tracking",
       "Basic stats & analytics",
@@ -63,110 +47,29 @@ const plans: Plan[] = [
     highlighted: true,
     features: [
       "Everything in Free",
-<<<<<<< HEAD
-      "Unlimited habits",
-      "Unlimited goals",
-=======
       "Goals & milestones",
->>>>>>> 2640b07 (feat: add Polar payments with Free/Pro/Max subscription tiers)
       "Advanced progress tracking",
       "Priority support",
     ],
   },
-<<<<<<< HEAD
-=======
-  {
-    key: "max",
-    name: "Max",
-    price: 10,
-    description: "For power users",
-    icon: Crown,
-    iconColor: "text-amber-500",
-    features: [
-      "Everything in Pro",
-      "Detailed analytics",
-      "Custom goal criteria",
-      "Early access to new features",
-    ],
-  },
->>>>>>> 2640b07 (feat: add Polar payments with Free/Pro/Max subscription tiers)
 ];
 
-interface PricingCardsProps {
-  currentTier: SubscriptionTier;
-  hasPolarCustomer: boolean;
-}
-
-export function PricingCards({ currentTier, hasPolarCustomer }: PricingCardsProps) {
-  const [loading, setLoading] = useState<SubscriptionTier | null>(null);
-<<<<<<< HEAD
-  const [showUpgradeScreen, setShowUpgradeScreen] = useState(false);
-  const upgradeShown = useRef(false);
-  const searchParams = useSearchParams();
-  const isSuccess = searchParams.get("success") === "true";
-
-  // On ?success=true, poll every 2s until the webhook has updated the subscription.
-  // Shared cache means AddHabitGate / AddGoalGate also pick up the update automatically.
-  const { data: subscriptionData } = useSubscriptionQuery({ pollUntilActive: isSuccess });
-
-  // Show upgrade screen once when polling confirms pro is active
-  useEffect(() => {
-    if (isSuccess && subscriptionData?.tier === "pro" && !upgradeShown.current) {
-      upgradeShown.current = true;
-      setShowUpgradeScreen(true);
-    }
-  }, [isSuccess, subscriptionData?.tier]);
-=======
->>>>>>> 2640b07 (feat: add Polar payments with Free/Pro/Max subscription tiers)
-
-  const handleSubscribe = async (tier: SubscriptionTier) => {
-    if (tier === "free") return;
-
-    setLoading(tier);
-    try {
-      const res = await fetch("/api/polar/checkout", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ tier }),
-      });
-
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.error ?? "Failed to create checkout");
-      }
-
-      const { url } = await res.json();
-      window.location.href = url;
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Something went wrong");
-      setLoading(null);
-    }
-  };
+export function PricingCards() {
+  const { data: sub } = useSubscription();
+  const currentTier: SubscriptionTier = sub?.tier ?? "free";
+  const hasPolarCustomer = !!sub?.polarCustomerId;
+  const { mutate: checkout, isPending, variables: pendingVars } = useCheckout();
 
   const handleManage = () => {
     window.location.href = "/api/polar/portal";
   };
 
   return (
-<<<<<<< HEAD
-    <>
-      {showUpgradeScreen && (
-        <UpgradeScreen onDismiss={() => setShowUpgradeScreen(false)} />
-      )}
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
       {plans.map((plan, index) => {
         const Icon = plan.icon;
         const isCurrent = plan.key === currentTier;
-        const isDowngrade = currentTier !== "free" && plan.key === "free";
-=======
-    <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-      {plans.map((plan, index) => {
-        const Icon = plan.icon;
-        const isCurrent = plan.key === currentTier;
-        const isDowngrade =
-          (currentTier === "max" && plan.key === "pro") ||
-          (currentTier !== "free" && plan.key === "free");
->>>>>>> 2640b07 (feat: add Polar payments with Free/Pro/Max subscription tiers)
+        const isDowngrade = plan.key === "pro" && currentTier !== "free";
 
         return (
           <motion.div
@@ -179,16 +82,12 @@ export function PricingCards({ currentTier, hasPolarCustomer }: PricingCardsProp
               plan.highlighted
                 ? "border-orange/60 bg-orange/5 shadow-lg shadow-orange/10"
                 : "border-border bg-card",
-              isCurrent && "ring-2 ring-primary"
+              isCurrent && "ring-2 ring-primary",
             )}
           >
             {plan.highlighted && (
               <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-<<<<<<< HEAD
-                <span className="rounded-full bg-orange px-3 py-1 text-xs font-bold text-white shadow font-cinzel tracking-wide">
-=======
                 <span className="rounded-full bg-orange px-3 py-1 text-xs font-bold text-white shadow">
->>>>>>> 2640b07 (feat: add Polar payments with Free/Pro/Max subscription tiers)
                   Most Popular
                 </span>
               </div>
@@ -206,33 +105,27 @@ export function PricingCards({ currentTier, hasPolarCustomer }: PricingCardsProp
               <div
                 className={cn(
                   "flex h-10 w-10 items-center justify-center rounded-2xl",
-                  plan.highlighted ? "bg-orange/15" : "bg-muted"
+                  plan.highlighted ? "bg-orange/15" : "bg-muted",
                 )}
               >
                 <Icon className={cn("h-5 w-5", plan.iconColor)} />
               </div>
               <div>
-<<<<<<< HEAD
-                <h3 className={cn("font-bold font-cinzel", plan.key === "pro" ? "title-pro" : "title-free")}>{plan.name}</h3>
-                <p className="text-xs text-muted-foreground font-body">{plan.description}</p>
-=======
-                <h3 className="font-bold text-foreground">{plan.name}</h3>
-                <p className="text-xs text-muted-foreground">{plan.description}</p>
->>>>>>> 2640b07 (feat: add Polar payments with Free/Pro/Max subscription tiers)
+                <p className="text-xs text-muted-foreground">
+                  {plan.description}
+                </p>
               </div>
             </div>
 
             <div className="mb-6">
               <div className="flex items-end gap-1">
-<<<<<<< HEAD
                 <span className={cn("text-4xl font-extrabold font-cinzel", plan.key === "pro" ? "title-pro" : "title-free")}>
-=======
-                <span className="text-4xl font-extrabold text-foreground">
->>>>>>> 2640b07 (feat: add Polar payments with Free/Pro/Max subscription tiers)
                   ${plan.price}
                 </span>
                 {plan.price > 0 && (
-                  <span className="mb-1 text-sm text-muted-foreground">/mo</span>
+                  <span className="mb-1 text-sm text-muted-foreground">
+                    /mo
+                  </span>
                 )}
               </div>
             </div>
@@ -241,11 +134,7 @@ export function PricingCards({ currentTier, hasPolarCustomer }: PricingCardsProp
               {plan.features.map((feature) => (
                 <li key={feature} className="flex items-start gap-2">
                   <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-<<<<<<< HEAD
                   <span className="text-sm text-foreground/80 font-body">{feature}</span>
-=======
-                  <span className="text-sm text-foreground/80">{feature}</span>
->>>>>>> 2640b07 (feat: add Polar payments with Free/Pro/Max subscription tiers)
                 </li>
               ))}
             </ul>
@@ -282,25 +171,24 @@ export function PricingCards({ currentTier, hasPolarCustomer }: PricingCardsProp
               </Button>
             ) : (
               <Button
-                onClick={() => handleSubscribe(plan.key)}
-                disabled={loading === plan.key}
+                onClick={() => checkout({ tier: plan.key })}
+                disabled={isPending && pendingVars?.tier === plan.key}
                 className={cn(
                   "rounded-2xl font-semibold",
                   plan.highlighted
                     ? "bg-orange hover:bg-orange/90 text-white"
-                    : ""
+                    : "",
                 )}
               >
-                {loading === plan.key ? "Redirecting…" : `Upgrade to ${plan.name}`}
+                {isPending && pendingVars?.tier === plan.key
+                  ? "Redirecting…"
+                  : `Upgrade to ${plan.name}`}
               </Button>
             )}
           </motion.div>
         );
       })}
     </div>
-<<<<<<< HEAD
     </>
-=======
->>>>>>> 2640b07 (feat: add Polar payments with Free/Pro/Max subscription tiers)
   );
 }

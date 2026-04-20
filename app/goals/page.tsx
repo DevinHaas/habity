@@ -1,13 +1,9 @@
-import { getUserTier } from "@/db/actions/subscriptions";
 import { ProGate } from "@/components/shared/ProGate";
 import { GoalsContent } from "@/components/goals/GoalsContent";
 
-export default async function GoalsPage() {
-  const tier = await getUserTier();
-  const hasPro = tier === "pro" || tier === "max";
-
+export default function GoalsPage() {
   return (
-    <ProGate hasPro={hasPro}>
+    <ProGate>
       <GoalsContent />
     </ProGate>
   );
