@@ -1,7 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  allowedDevOrigins: ["bold-chow-mainly.ngrok-free.app"],
+  trailingSlash: false,
 };
 
 export default nextConfig;

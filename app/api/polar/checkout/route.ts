@@ -8,7 +8,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { tier } = (await req.json()) as { tier: PolarProductKey };
+  const { tier, redirectPath } = (await req.json()) as {
+    tier: PolarProductKey;
+    redirectPath?: string;
+  };
 
   const productId = POLAR_PRODUCT_IDS[tier];
   if (!productId) {
@@ -16,6 +19,7 @@ export async function POST(req: NextRequest) {
   }
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+  const successPath = redirectPath ?? "/pricing";
 
   const checkout = await polar.checkouts.create({
     products: [productId],
@@ -27,7 +31,7 @@ export async function POST(req: NextRequest) {
       userId: session.user.id,
       tier,
     },
-    successUrl: `${appUrl}/pricing?success=true`,
+    successUrl: `${appUrl}${successPath}?success=true`,
   });
 
   return NextResponse.json({ url: checkout.url });

@@ -22,8 +22,8 @@ export function PointsCard({ points, stats }: PointsCardProps) {
           text: `I've earned ${points} points this week on Habity!`,
           url: window.location.href,
         });
-      } catch (error) {
-        console.log("Share cancelled");
+      } catch {
+        // share cancelled or not supported
       }
     }
   };

@@ -1,12 +1,12 @@
 "use client";
 
-import { useState } from "react";
 import { motion } from "framer-motion";
 import { Check, Zap, Crown, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { toast } from "sonner";
 import type { SubscriptionTier } from "@/db/schema";
+import { useSubscription } from "@/hooks/useSubscription";
+import { useCheckout } from "@/hooks/useCheckout";
 
 interface Plan {
   key: SubscriptionTier;
@@ -51,66 +51,24 @@ const plans: Plan[] = [
       "Priority support",
     ],
   },
-  {
-    key: "max",
-    name: "Max",
-    price: 10,
-    description: "For power users",
-    icon: Crown,
-    iconColor: "text-amber-500",
-    features: [
-      "Everything in Pro",
-      "Detailed analytics",
-      "Custom goal criteria",
-      "Early access to new features",
-    ],
-  },
 ];
 
-interface PricingCardsProps {
-  currentTier: SubscriptionTier;
-  hasPolarCustomer: boolean;
-}
-
-export function PricingCards({ currentTier, hasPolarCustomer }: PricingCardsProps) {
-  const [loading, setLoading] = useState<SubscriptionTier | null>(null);
-
-  const handleSubscribe = async (tier: SubscriptionTier) => {
-    if (tier === "free") return;
-
-    setLoading(tier);
-    try {
-      const res = await fetch("/api/polar/checkout", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ tier }),
-      });
-
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.error ?? "Failed to create checkout");
-      }
-
-      const { url } = await res.json();
-      window.location.href = url;
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Something went wrong");
-      setLoading(null);
-    }
-  };
+export function PricingCards() {
+  const { data: sub } = useSubscription();
+  const currentTier: SubscriptionTier = sub?.tier ?? "free";
+  const hasPolarCustomer = !!sub?.polarCustomerId;
+  const { mutate: checkout, isPending, variables: pendingVars } = useCheckout();
 
   const handleManage = () => {
     window.location.href = "/api/polar/portal";
   };
 
   return (
-    <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
       {plans.map((plan, index) => {
         const Icon = plan.icon;
         const isCurrent = plan.key === currentTier;
-        const isDowngrade =
-          (currentTier === "max" && plan.key === "pro") ||
-          (currentTier !== "free" && plan.key === "free");
+        const isDowngrade = plan.key === "pro" && currentTier !== "free";
 
         return (
           <motion.div
@@ -123,7 +81,7 @@ export function PricingCards({ currentTier, hasPolarCustomer }: PricingCardsProp
               plan.highlighted
                 ? "border-orange/60 bg-orange/5 shadow-lg shadow-orange/10"
                 : "border-border bg-card",
-              isCurrent && "ring-2 ring-primary"
+              isCurrent && "ring-2 ring-primary",
             )}
           >
             {plan.highlighted && (
@@ -146,14 +104,16 @@ export function PricingCards({ currentTier, hasPolarCustomer }: PricingCardsProp
               <div
                 className={cn(
                   "flex h-10 w-10 items-center justify-center rounded-2xl",
-                  plan.highlighted ? "bg-orange/15" : "bg-muted"
+                  plan.highlighted ? "bg-orange/15" : "bg-muted",
                 )}
               >
                 <Icon className={cn("h-5 w-5", plan.iconColor)} />
               </div>
               <div>
                 <h3 className="font-bold text-foreground">{plan.name}</h3>
-                <p className="text-xs text-muted-foreground">{plan.description}</p>
+                <p className="text-xs text-muted-foreground">
+                  {plan.description}
+                </p>
               </div>
             </div>
 
@@ -163,7 +123,9 @@ export function PricingCards({ currentTier, hasPolarCustomer }: PricingCardsProp
                   ${plan.price}
                 </span>
                 {plan.price > 0 && (
-                  <span className="mb-1 text-sm text-muted-foreground">/mo</span>
+                  <span className="mb-1 text-sm text-muted-foreground">
+                    /mo
+                  </span>
                 )}
               </div>
             </div>
@@ -209,16 +171,18 @@ export function PricingCards({ currentTier, hasPolarCustomer }: PricingCardsProp
               </Button>
             ) : (
               <Button
-                onClick={() => handleSubscribe(plan.key)}
-                disabled={loading === plan.key}
+                onClick={() => checkout({ tier: plan.key })}
+                disabled={isPending && pendingVars?.tier === plan.key}
                 className={cn(
                   "rounded-2xl font-semibold",
                   plan.highlighted
                     ? "bg-orange hover:bg-orange/90 text-white"
-                    : ""
+                    : "",
                 )}
               >
-                {loading === plan.key ? "Redirecting…" : `Upgrade to ${plan.name}`}
+                {isPending && pendingVars?.tier === plan.key
+                  ? "Redirecting…"
+                  : `Upgrade to ${plan.name}`}
               </Button>
             )}
           </motion.div>
