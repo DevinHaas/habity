@@ -7,6 +7,7 @@ const FREE_HABIT_LIMIT = 3;
 
 export default async function AddHabitPage() {
   const [tier, habits] = await Promise.all([getUserTier(), getHabits()]);
+  console.log(tier);
   const atLimit = tier === "free" && habits.length >= FREE_HABIT_LIMIT;
 
   if (atLimit) {

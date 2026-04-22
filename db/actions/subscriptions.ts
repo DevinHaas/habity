@@ -22,7 +22,7 @@ export async function getUserTier(): Promise<SubscriptionTier> {
   const sub = await getSubscription();
 
   // If subscription is not active (canceled / past_due) treat as free
-  if (sub.status !== "active") return "free";
+  if (sub.status !== "active" && sub.status !== "trialing") return "free";
   return sub.tier as SubscriptionTier;
 }
 
