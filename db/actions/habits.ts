@@ -1,12 +1,24 @@
 "use server";
 
-import { db } from '@/db';
-import { habits, habitCompletions } from '@/db/schema';
-import { eq, and, gte, desc, count } from 'drizzle-orm';
-import { getCurrentUserId } from '@/lib/auth-utils';
-import { getUserTier } from '@/db/actions/subscriptions';
+import { db } from "@/db";
+import { habits, habitCompletions } from "@/db/schema";
+import { eq, and, gte, desc, count, ilike } from "drizzle-orm";
+import { getCurrentUserId } from "@/lib/auth-utils";
+import { getUserTier } from "@/db/actions/subscriptions";
 
 const FREE_HABIT_LIMIT = 3;
+
+export async function checkHabitNameAvailability(
+  name: string,
+): Promise<boolean> {
+  const userId = await getCurrentUserId();
+  const [existing] = await db
+    .select({ id: habits.id })
+    .from(habits)
+    .where(and(eq(habits.userId, userId), ilike(habits.name, name.trim())))
+    .limit(1);
+  return !existing;
+}
 
 export async function getHabits() {
   const userId = await getCurrentUserId();
@@ -17,22 +29,29 @@ export async function getHabits() {
     .orderBy(habits.createdAt);
 }
 
-export async function createHabit(data: Omit<typeof habits.$inferInsert, "userId" | "id" | "createdAt">) {
+export async function createHabit(
+  data: Omit<typeof habits.$inferInsert, "userId" | "id" | "createdAt">,
+) {
   const userId = await getCurrentUserId();
 
   const tier = await getUserTier();
-  if (tier === 'free') {
+  if (tier === "free") {
     const [{ habitCount }] = await db
       .select({ habitCount: count() })
       .from(habits)
       .where(eq(habits.userId, userId));
 
     if (habitCount >= FREE_HABIT_LIMIT) {
-      throw new Error(`Free plan is limited to ${FREE_HABIT_LIMIT} habits. Upgrade to Pro for unlimited habits.`);
+      throw new Error(
+        `Free plan is limited to ${FREE_HABIT_LIMIT} habits. Upgrade to Pro for unlimited habits.`,
+      );
     }
   }
 
-  const [habit] = await db.insert(habits).values({ ...data, userId }).returning();
+  const [habit] = await db
+    .insert(habits)
+    .values({ ...data, userId })
+    .returning();
   return habit;
 }
 

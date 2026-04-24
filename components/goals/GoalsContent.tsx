@@ -5,7 +5,6 @@ import Link from "next/link";
 import Image from "next/image";
 import { Trophy, ChevronRight, Plus } from "lucide-react";
 import { GoalCard } from "@/components/goals/GoalCard";
-<<<<<<< HEAD
 import { GoalListSkeleton } from "@/components/goals/GoalListSkeleton";
 import { BottomNav, FloatingAddButton } from "@/components/layout/BottomNav";
 import { Header } from "@/components/layout/Header";
@@ -16,30 +15,13 @@ import { Button } from "@/components/ui/button";
 export function GoalsContent() {
   const { goals, totalCoins, removeGoal, isPending } = useGoals();
   const { stats } = useStatsData();
-=======
-import { BottomNav, FloatingAddButton } from "@/components/layout/BottomNav";
-import { Header } from "@/components/layout/Header";
-import { useGoals, type GoalWithProgress } from "@/hooks/useGoals";
-import { useHabits, useTimeOfDay } from "@/hooks";
-import { Button } from "@/components/ui/button";
 
-export function GoalsContent() {
-  const { goals, totalCoins, removeGoal } = useGoals();
-  const { stats } = useHabits();
->>>>>>> 2640b07 (feat: add Polar payments with Free/Pro/Max subscription tiers)
   const { isDay } = useTimeOfDay();
 
   const completedGoals = goals.filter((g: GoalWithProgress) => g.isCompleted);
   const activeGoals = goals.filter((g: GoalWithProgress) => !g.isCompleted);
 
-  // Background image changes based on time of day
-<<<<<<< HEAD
-  const backgroundImage = isDay
-    ? "/archer_target.jpeg"
-    : "/archer_target_night.jpeg";
-=======
   const backgroundImage = isDay ? "/archer_target.jpeg" : "/archer_target_night.jpeg";
->>>>>>> 2640b07 (feat: add Polar payments with Free/Pro/Max subscription tiers)
 
   return (
     <div className="min-h-screen bg-card flex flex-col max-w-2xl mx-auto">
@@ -104,7 +86,6 @@ export function GoalsContent() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
           >
-<<<<<<< HEAD
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold text-foreground">
                 Active Goals
@@ -181,81 +162,6 @@ export function GoalsContent() {
               </div>
             </motion.section>
           )}
-=======
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-foreground">
-              Active Goals
-            </h2>
-            {activeGoals.length > 3 && (
-              <button className="flex items-center gap-1 text-sm text-primary hover:underline">
-                View All
-                <ChevronRight className="w-4 h-4" />
-              </button>
-            )}
-          </div>
-
-          {activeGoals.length === 0 ? (
-            <div className="bg-card rounded-2xl p-8 text-center border border-border">
-              <div className="w-16 h-16 rounded-full bg-muted mx-auto mb-4 flex items-center justify-center">
-                <Trophy className="w-8 h-8 text-muted-foreground" />
-              </div>
-              <h3 className="font-semibold text-foreground mb-2">
-                No goals yet
-              </h3>
-              <p className="text-sm text-muted-foreground mb-4">
-                Create your first goal and start working towards your reward!
-              </p>
-              <Link href="/add-goal">
-                <Button className="rounded-full">
-                  <Plus className="w-4 h-4 mr-2" />
-                  Create Goal
-                </Button>
-              </Link>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {activeGoals.map((goal: GoalWithProgress, index: number) => (
-                <GoalCard
-                  key={goal.id}
-                  goal={goal}
-                  index={index}
-                  onDelete={removeGoal}
-                />
-              ))}
-            </div>
-          )}
-        </motion.section>
-
-        {/* Completed Goals Section */}
-        {completedGoals.length > 0 && (
-          <motion.section
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-            className="mt-8"
-          >
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-foreground">
-                🎉 Completed
-              </h2>
-              <span className="text-sm text-muted-foreground">
-                {completedGoals.length} goal{completedGoals.length !== 1 && "s"}
-              </span>
-            </div>
-
-            <div className="space-y-3">
-              {completedGoals.map((goal: GoalWithProgress, index: number) => (
-                <GoalCard
-                  key={goal.id}
-                  goal={goal}
-                  index={index}
-                  onDelete={removeGoal}
-                />
-              ))}
-            </div>
-          </motion.section>
-        )}
->>>>>>> 2640b07 (feat: add Polar payments with Free/Pro/Max subscription tiers)
         </div>
       </main>
 
@@ -263,15 +169,11 @@ export function GoalsContent() {
       <div className="fixed bottom-24 left-0 right-0 z-40 pointer-events-none">
         <div className="mx-auto max-w-lg px-6">
           <div className="flex justify-end pointer-events-auto">
-<<<<<<< HEAD
             <FloatingAddButton
               href="/add-goal"
               color="olive"
               variant="relative"
             />
-=======
-            <FloatingAddButton href="/add-goal" color="olive" variant="relative" />
->>>>>>> 2640b07 (feat: add Polar payments with Free/Pro/Max subscription tiers)
           </div>
         </div>
       </div>
