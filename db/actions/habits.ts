@@ -55,6 +55,15 @@ export async function createHabit(
   return habit;
 }
 
+export async function checkNameAvailability(name: string) {
+  const userId = await getCurrentUserId();
+  const existing = await db
+    .select({ id: habits.id })
+    .from(habits)
+    .where(and(eq(habits.userId, userId), eq(habits.name, name)));
+  return existing.length === 0;
+}
+
 export async function deleteHabit(id: string) {
   const userId = await getCurrentUserId();
   await db

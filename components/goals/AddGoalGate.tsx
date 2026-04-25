@@ -2,9 +2,9 @@
 
 import { useSubscriptionQuery } from "@/hooks/queries/useSubscriptionQuery";
 import { useGoalsQuery } from "@/hooks/queries/useGoalsQuery";
-import { UpgradePrompt } from "@/components/shared/ProGate";
 import { AddGoalContent } from "@/components/goals/AddGoalContent";
 import { getEffectiveTier } from "@/lib/subscription-utils";
+import { UpgradePrompt } from "../shared/ProGate";
 
 export function AddGoalGate() {
   const { data: sub, isLoading: subLoading } = useSubscriptionQuery();

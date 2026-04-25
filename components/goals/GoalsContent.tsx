@@ -11,12 +11,15 @@ import { Header } from "@/components/layout/Header";
 import { useGoals, type GoalWithProgress } from "@/hooks/useGoals";
 import { useTimeOfDay, useStatsData } from "@/hooks";
 import { Button } from "@/components/ui/button";
+import { GoalsSkeleton } from "@/components/goals/GoalsSkeleton";
 
 export function GoalsContent() {
   const { goals, totalCoins, removeGoal, isPending } = useGoals();
   const { stats } = useStatsData();
 
   const { isDay } = useTimeOfDay();
+
+  if (isPending) return <GoalsSkeleton />;
 
   const completedGoals = goals.filter((g: GoalWithProgress) => g.isCompleted);
   const activeGoals = goals.filter((g: GoalWithProgress) => !g.isCompleted);

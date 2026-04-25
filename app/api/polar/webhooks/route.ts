@@ -12,7 +12,7 @@ function getTierFromProductId(productId: string): SubscriptionTier {
 }
 
 function getUserIdFromSub(sub: {
-  customer: { externalId: string | null };
+  customer: { externalId?: string | null };
   metadata?: Record<string, unknown> | null;
 }): string | undefined {
   return (
@@ -26,17 +26,29 @@ const webhookHandler = Webhooks({
     const type = payload.type;
     console.log(`[Polar Webhook] ✅ Received event type="${type}"`);
 
-    if (
-      type === "subscription.created" ||
-      type === "subscription.active" ||
-      type === "subscription.updated"
-    ) {
-      const sub = payload.data;
+    try {
+      if (
+        type === "subscription.created" ||
+        type === "subscription.active" ||
+        type === "subscription.updated"
+      ) {
+        const sub = payload.data;
+        const userId = getUserIdFromSub(sub);
+        if (!userId) {
+          console.error("[Polar Webhook] ❌ No userId for sub", sub.id);
+          return;
+        }
 
-      const userId = getUserIdFromSub(sub);
-
-      if (!userId) {
-        return;
+        console.log(`[Polar Webhook] Upserting active sub: userId="${userId}"`);
+        await upsertSubscriptionFromWebhook({
+          polarSubscriptionId: sub.id,
+          polarCustomerId: sub.customerId,
+          userId,
+          tier: getTierFromProductId(sub.productId),
+          status: sub.status,
+          currentPeriodEnd: sub.currentPeriodEnd ?? undefined,
+        });
+        console.log(`[Polar Webhook] ✅ Upserted for userId="${userId}"`);
       }
 
       if (type === "subscription.canceled") {
@@ -80,7 +92,7 @@ const webhookHandler = Webhooks({
       }
     } catch (err) {
       console.error("[Polar Webhook] ❌ Error processing payload:", err);
-      throw err; // re-throw so Polar retries
+      throw err;
     }
   },
 });
