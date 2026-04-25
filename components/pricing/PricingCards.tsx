@@ -1,7 +1,5 @@
 "use client";
 
-import { useState } from "react";
-=======
 import { useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { Check, Zap, Sparkles } from "lucide-react";
@@ -9,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type { SubscriptionTier } from "@/db/schema";
 import { useSubscriptionQuery } from "@/hooks/queries/useSubscriptionQuery";
+import { useCheckout } from "@/hooks/useCheckout";
 
 interface Plan {
   key: SubscriptionTier;
@@ -63,45 +62,18 @@ interface PricingCardsProps {
 }
 
 export function PricingCards({ currentTier, hasPolarCustomer }: PricingCardsProps) {
-  const [loading, setLoading] = useState<SubscriptionTier | null>(null);
-=======
   const searchParams = useSearchParams();
   const isSuccess = searchParams.get("success") === "true";
 
-  // On ?success=true, poll every 2s until the webhook has updated the subscription.
-  // Shared cache means AddHabitGate / AddGoalGate also pick up the update automatically.
   useSubscriptionQuery({ pollUntilActive: isSuccess });
 
-  const handleSubscribe = async (tier: SubscriptionTier) => {
-    if (tier === "free") return;
-
-    setLoading(tier);
-    try {
-      const res = await fetch("/api/polar/checkout", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ tier }),
-      });
-
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.error ?? "Failed to create checkout");
-      }
-
-      const { url } = await res.json();
-      window.location.href = url;
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Something went wrong");
-      setLoading(null);
-    }
-  };
+  const { mutate: checkout, isPending, variables: pendingVars } = useCheckout();
 
   const handleManage = () => {
     window.location.href = "/api/polar/portal";
   };
 
   return (
-=======
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
       {plans.map((plan, index) => {
         const Icon = plan.icon;

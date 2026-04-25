@@ -10,7 +10,7 @@ function getTierFromProductId(productId: string): SubscriptionTier {
 }
 
 function getUserIdFromSub(sub: {
-  customer: { externalId: string | null };
+  customer: { externalId?: string | null };
   metadata?: Record<string, unknown> | null;
 }): string | undefined {
   return (
