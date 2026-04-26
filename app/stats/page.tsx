@@ -73,7 +73,8 @@ export default function StatsPage() {
   const { stats, levelName, isPending: isStatsPending } = useStatsData();
   const { getCompletionsForDate } = useCompletionHistory();
   const { data: session } = useSession();
-  const { data: subscription, isLoading: isSubscriptionLoading } = useSubscription();
+  const { data: subscription, isLoading: isSubscriptionLoading } =
+    useSubscription();
 
   const isLoading = isStatsPending || isSubscriptionLoading;
   const tier = getEffectiveTier(subscription);
@@ -133,23 +134,6 @@ export default function StatsPage() {
           )}
         </motion.section>
 
-        {/* Stats Overview */}
-        <motion.section
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-        >
-          {isLoading ? (
-            <StatsOverviewSkeleton />
-          ) : (
-            <StatsOverview
-              totalHabitsCompleted={stats.totalHabitsCompleted}
-              currentStreak={stats.currentStreak}
-              coins={stats.coins}
-            />
-          )}
-        </motion.section>
-
         {/* Analytics Section */}
         <motion.section
           initial={{ opacity: 0, y: 20 }}
@@ -158,7 +142,9 @@ export default function StatsPage() {
           className="space-y-3 pb-8 flex flex-col min-h-[400px]"
         >
           <div className="flex items-center justify-between">
-            <h2 className="text-base font-semibold text-foreground">Analytics</h2>
+            <h2 className="text-base font-semibold text-foreground">
+              Analytics
+            </h2>
 
             <div className="flex rounded-xl bg-muted p-1">
               <button
@@ -167,7 +153,7 @@ export default function StatsPage() {
                   "relative flex items-center justify-center rounded-lg px-3 py-1.5 transition-colors",
                   analyticsView === "bars"
                     ? "text-foreground"
-                    : "text-muted-foreground hover:text-foreground"
+                    : "text-muted-foreground hover:text-foreground",
                 )}
               >
                 {analyticsView === "bars" && (
@@ -186,7 +172,7 @@ export default function StatsPage() {
                   "relative flex items-center justify-center rounded-lg px-3 py-1.5 transition-colors",
                   analyticsView === "calendar"
                     ? "text-foreground"
-                    : "text-muted-foreground hover:text-foreground"
+                    : "text-muted-foreground hover:text-foreground",
                 )}
               >
                 {analyticsView === "calendar" && (
