@@ -11,23 +11,73 @@ import { HabitCalendar } from "@/components/stats/HabitCalendar";
 import { BottomNav } from "@/components/layout/BottomNav";
 import { Header } from "@/components/layout/Header";
 import { SettingsModal } from "@/components/shared/SettingsModal";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useHabitsData, useStatsData, useCompletionHistory } from "@/hooks";
+import { useSubscription } from "@/hooks/useSubscription";
 import { useSession } from "@/lib/auth-client";
+import { getEffectiveTier } from "@/lib/subscription-utils";
 import { cn } from "@/lib/utils";
 
 type TimePeriod = "weekly" | "monthly" | "yearly";
 type AnalyticsView = "bars" | "calendar";
+
+function LevelCardSkeleton() {
+  return (
+    <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#1a1625] via-[#2d2640] to-[#1a1625] p-4 shadow-xl">
+      {/* username placeholder */}
+      <Skeleton className="absolute top-4 left-4 h-4 w-24 bg-white/10" />
+      {/* crown placeholder */}
+      <Skeleton className="absolute top-3 right-3 h-14 w-14 rounded-full bg-white/10" />
+      <div className="flex flex-col items-center gap-2 py-2">
+        {/* badge image */}
+        <Skeleton className="h-16 w-16 rounded-full bg-white/10" />
+        {/* level name */}
+        <Skeleton className="h-5 w-28 bg-white/10" />
+        {/* "Level N" */}
+        <Skeleton className="h-4 w-16 bg-white/10" />
+        {/* XP bar row */}
+        <div className="w-full mt-1 space-y-1">
+          <div className="flex justify-between">
+            <Skeleton className="h-3 w-6 bg-white/10" />
+            <Skeleton className="h-3 w-14 bg-white/10" />
+          </div>
+          <Skeleton className="h-2 w-full rounded-full bg-white/10" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function StatsOverviewSkeleton() {
+  return (
+    <div className="grid grid-cols-3 gap-2">
+      {[0, 1, 2].map((i) => (
+        <div
+          key={i}
+          className="flex flex-col items-center p-2.5 rounded-xl bg-card border border-border shadow-sm gap-1"
+        >
+          <Skeleton className="h-5 w-5 rounded-full" />
+          <Skeleton className="h-6 w-10" />
+          <Skeleton className="h-3 w-16" />
+        </div>
+      ))}
+    </div>
+  );
+}
 
 export default function StatsPage() {
   const [timePeriod, setTimePeriod] = useState<TimePeriod>("weekly");
   const [analyticsView, setAnalyticsView] = useState<AnalyticsView>("calendar");
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const { habits } = useHabitsData();
-  const { stats, levelName } = useStatsData();
+  const { stats, levelName, isPending: isStatsPending } = useStatsData();
   const { getCompletionsForDate } = useCompletionHistory();
   const { data: session } = useSession();
+  const { data: subscription, isLoading: isSubscriptionLoading } = useSubscription();
 
-  // Get progress percentage based on time period
+  const isLoading = isStatsPending || isSubscriptionLoading;
+  const tier = getEffectiveTier(subscription);
+
   const getProgressForPeriod = (period: TimePeriod) => {
     const baseProgress = {
       weekly: { overall: 72, habits: stats.habits },
@@ -41,7 +91,6 @@ export default function StatsPage() {
 
   return (
     <div className="min-h-screen bg-background pb-24">
-      {/* Global Header with coins and streak */}
       <Header coins={stats.coins} streak={stats.currentStreak} />
 
       {/* Page Title */}
@@ -62,35 +111,43 @@ export default function StatsPage() {
         </div>
       </div>
 
-      {/* Main Content */}
       <main className="mx-auto max-w-lg px-6 space-y-3">
-        {/* Level Card - Hero Section */}
+        {/* Level Card */}
         <motion.section
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
         >
-          <LevelCard
-            level={stats.level}
-            levelName={levelName}
-            currentBadge={stats.currentBadge}
-            points={stats.points}
-            totalPoints={stats.totalPoints}
-            userName={session?.user?.name}
-          />
+          {isLoading ? (
+            <LevelCardSkeleton />
+          ) : (
+            <LevelCard
+              level={stats.level}
+              levelName={levelName}
+              currentBadge={stats.currentBadge}
+              points={stats.points}
+              totalPoints={stats.totalPoints}
+              userName={session?.user?.name}
+              tier={tier}
+            />
+          )}
         </motion.section>
 
-        {/* Stats Overview Card */}
+        {/* Stats Overview */}
         <motion.section
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
         >
-          <StatsOverview
-            totalHabitsCompleted={stats.totalHabitsCompleted}
-            currentStreak={stats.currentStreak}
-            coins={stats.coins}
-          />
+          {isLoading ? (
+            <StatsOverviewSkeleton />
+          ) : (
+            <StatsOverview
+              totalHabitsCompleted={stats.totalHabitsCompleted}
+              currentStreak={stats.currentStreak}
+              coins={stats.coins}
+            />
+          )}
         </motion.section>
 
         {/* Analytics Section */}
@@ -102,8 +159,7 @@ export default function StatsPage() {
         >
           <div className="flex items-center justify-between">
             <h2 className="text-base font-semibold text-foreground">Analytics</h2>
-            
-            {/* View Toggle */}
+
             <div className="flex rounded-xl bg-muted p-1">
               <button
                 onClick={() => setAnalyticsView("bars")}
@@ -119,11 +175,7 @@ export default function StatsPage() {
                     layoutId="view-indicator"
                     className="absolute inset-0 bg-card rounded-lg shadow-sm"
                     initial={false}
-                    transition={{
-                      type: "spring",
-                      stiffness: 500,
-                      damping: 35,
-                    }}
+                    transition={{ type: "spring", stiffness: 500, damping: 35 }}
                   />
                 )}
                 <BarChart3 className="h-4 w-4 relative z-10" />
@@ -142,25 +194,16 @@ export default function StatsPage() {
                     layoutId="view-indicator"
                     className="absolute inset-0 bg-card rounded-lg shadow-sm"
                     initial={false}
-                    transition={{
-                      type: "spring",
-                      stiffness: 500,
-                      damping: 35,
-                    }}
+                    transition={{ type: "spring", stiffness: 500, damping: 35 }}
                   />
                 )}
                 <CalendarDays className="h-4 w-4 relative z-10" />
               </button>
             </div>
           </div>
-          
-          {/* Time Period Selector */}
-          <TimePeriodSelector
-            selected={timePeriod}
-            onSelect={setTimePeriod}
-          />
 
-          {/* Analytics Content */}
+          <TimePeriodSelector selected={timePeriod} onSelect={setTimePeriod} />
+
           <AnimatePresence mode="wait">
             {analyticsView === "bars" ? (
               <motion.div
@@ -192,10 +235,8 @@ export default function StatsPage() {
         </motion.section>
       </main>
 
-      {/* Bottom Navigation */}
       <BottomNav />
 
-      {/* Settings Modal */}
       <SettingsModal
         isOpen={isSettingsOpen}
         onClose={() => setIsSettingsOpen(false)}

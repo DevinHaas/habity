@@ -11,6 +11,7 @@ interface LevelCardProps {
   points: number;
   totalPoints: number;
   userName?: string;
+  tier?: "free" | "pro";
 }
 
 export function LevelCard({
@@ -20,6 +21,7 @@ export function LevelCard({
   points,
   totalPoints,
   userName,
+  tier = "free",
 }: LevelCardProps) {
   const progress = getLevelProgress(points, totalPoints);
 
@@ -41,6 +43,21 @@ export function LevelCard({
           {userName}
         </motion.p>
       )}
+
+      {/* Crown / Tier Badge */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.3 }}
+        className="absolute top-3 right-3 z-10 w-14 h-14"
+      >
+        <Image
+          src={tier === "pro" ? "/crow_pro.png" : "/crow_free.png"}
+          alt={tier === "pro" ? "Pro tier" : "Free tier"}
+          fill
+          className="object-contain"
+        />
+      </motion.div>
 
       {/* Decorative background pattern */}
       <div className="absolute inset-0 opacity-10">

@@ -15,7 +15,7 @@ import {
 
 export function useStatsData() {
   const { habits, dbHabits } = useHabitsData();
-  const { data: dbStats } = useStatsQuery();
+  const { data: dbStats, isPending: isStatsPending } = useStatsQuery();
   const { data: allCompletions = [] } = useAllCompletionsQuery();
   const { data: completionHistory = [] } = useCompletionHistoryQuery(30);
 
@@ -70,5 +70,5 @@ export function useStatsData() {
 
   const levelName = getLevelName(stats.level);
 
-  return { stats, levelName };
+  return { stats, levelName, isPending: isStatsPending };
 }
