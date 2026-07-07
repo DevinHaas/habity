@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { Trophy, ChevronRight, Plus } from "lucide-react";
@@ -16,8 +17,10 @@ import { GoalsSkeleton } from "@/components/goals/GoalsSkeleton";
 export function GoalsContent() {
   const { goals, totalCoins, removeGoal, isPending } = useGoals();
   const { stats } = useStatsData();
+  const router = useRouter();
 
   const { isDay } = useTimeOfDay();
+  const editGoal = (id: string) => router.push(`/goals/${id}/edit`);
 
   if (isPending) return <GoalsSkeleton />;
 
@@ -129,6 +132,7 @@ export function GoalsContent() {
                     goal={goal}
                     index={index}
                     onDelete={removeGoal}
+                    onEdit={editGoal}
                   />
                 ))}
               </div>
@@ -160,6 +164,7 @@ export function GoalsContent() {
                     goal={goal}
                     index={index}
                     onDelete={removeGoal}
+                    onEdit={editGoal}
                   />
                 ))}
               </div>

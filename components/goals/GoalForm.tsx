@@ -28,12 +28,13 @@ interface GoalFormProps {
   onSubmit: (values: GoalFormValues) => void;
   onCancel: () => void;
   initialValues?: Partial<GoalFormValues>;
+  submitLabel?: string;
 }
 
 // Quick emoji suggestions
 const QUICK_EMOJIS = ["🎧", "👟", "💆", "🎮", "📱", "✈️", "🎁", "💰", "🏆", "🎯"];
 
-export function GoalForm({ onSubmit, onCancel, initialValues }: GoalFormProps) {
+export function GoalForm({ onSubmit, onCancel, initialValues, submitLabel = "Create Goal" }: GoalFormProps) {
   const { habits } = useHabitsData();
   const [previewEmoji, setPreviewEmoji] = useState<string>("🎯");
   const [customEmoji, setCustomEmoji] = useState<string>("");
@@ -299,7 +300,7 @@ export function GoalForm({ onSubmit, onCancel, initialValues }: GoalFormProps) {
         type="submit"
         className="w-full h-14 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground text-lg font-semibold"
       >
-        Create Goal
+        {submitLabel}
       </Button>
 
       {/* Cancel Button */}
