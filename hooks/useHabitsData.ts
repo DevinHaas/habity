@@ -20,17 +20,22 @@ export function useHabitsData() {
   const { data: completionHistory = [] } = useCompletionHistoryQuery(30);
 
   const habits = useMemo((): Habit[] => {
-    return dbHabits.map((dbHabit) => ({
-      id: dbHabit.id,
-      name: dbHabit.name,
-      icon: dbHabit.icon,
-      duration: dbHabit.duration || "5 min",
-      color: dbHabit.color,
-      repeatDays: dbHabit.repeatDays,
-      timeOfDay: ((dbHabit.timeOfDay as TimeOfDay) || "morning") as TimeOfDay,
-      completed: todayCompletions.some((c) => c.habitId === dbHabit.id),
-      streak: calculateStreak(dbHabit.id, completionHistory),
-    }));
+    return dbHabits.map((dbHabit) => {
+      const todayLog = todayCompletions.find((c) => c.habitId === dbHabit.id);
+      const status = (todayLog?.status ?? "nothing") as Habit["status"];
+      return {
+        id: dbHabit.id,
+        name: dbHabit.name,
+        icon: dbHabit.icon,
+        duration: dbHabit.duration || "5 min",
+        color: dbHabit.color,
+        repeatDays: dbHabit.repeatDays,
+        timeOfDay: ((dbHabit.timeOfDay as TimeOfDay) || "morning") as TimeOfDay,
+        status,
+        completed: status === "done",
+        streak: calculateStreak(dbHabit.id, completionHistory),
+      };
+    });
   }, [dbHabits, todayCompletions, completionHistory]);
 
   return { habits, dbHabits, isPending };

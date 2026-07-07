@@ -2,7 +2,7 @@
 
 import { db } from "@/db";
 import { habits, habitCompletions } from "@/db/schema";
-import { eq, and, gte, desc, count, ilike } from "drizzle-orm";
+import { eq, and, gte, desc, count, ilike, inArray } from "drizzle-orm";
 import { getCurrentUserId } from "@/lib/auth-utils";
 import { getUserTier } from "@/db/actions/subscriptions";
 
@@ -101,7 +101,7 @@ export async function getCompletionsForDate(date: string) {
     .where(
       and(
         eq(habitCompletions.completionDate, date),
-        // Filter by user's habits using inArray equivalent
+        inArray(habitCompletions.habitId, habitIds),
       ),
     );
 }
@@ -115,12 +115,12 @@ export async function getCompletionHistory(days: number = 30) {
   const day = String(startDate.getDate()).padStart(2, "0");
   const startDateStr = `${year}-${month}-${day}`;
 
-  // Join with habits to filter by user
   const result = await db
     .select({
       id: habitCompletions.id,
       habitId: habitCompletions.habitId,
       completionDate: habitCompletions.completionDate,
+      status: habitCompletions.status,
       createdAt: habitCompletions.createdAt,
     })
     .from(habitCompletions)
@@ -144,6 +144,7 @@ export async function getAllCompletions() {
       id: habitCompletions.id,
       habitId: habitCompletions.habitId,
       completionDate: habitCompletions.completionDate,
+      status: habitCompletions.status,
       createdAt: habitCompletions.createdAt,
     })
     .from(habitCompletions)
@@ -154,26 +155,23 @@ export async function getAllCompletions() {
   return result;
 }
 
-export async function toggleCompletion(
+export type HabitStatus = "done" | "failed" | "nothing";
+
+export async function setHabitStatus(
   habitId: string,
   date: string,
-  completed: boolean,
+  status: HabitStatus,
 ) {
   const userId = await getCurrentUserId();
 
-  // Verify the habit belongs to the user
   const [habit] = await db
     .select()
     .from(habits)
     .where(and(eq(habits.id, habitId), eq(habits.userId, userId)));
 
-  if (!habit) {
-    throw new Error("Habit not found or unauthorized");
-  }
+  if (!habit) throw new Error("Habit not found or unauthorized");
 
-  if (completed) {
-    await db.insert(habitCompletions).values({ habitId, completionDate: date });
-  } else {
+  if (status === "nothing") {
     await db
       .delete(habitCompletions)
       .where(
@@ -182,5 +180,13 @@ export async function toggleCompletion(
           eq(habitCompletions.completionDate, date),
         ),
       );
+  } else {
+    await db
+      .insert(habitCompletions)
+      .values({ habitId, completionDate: date, status })
+      .onConflictDoUpdate({
+        target: [habitCompletions.habitId, habitCompletions.completionDate],
+        set: { status },
+      });
   }
 }

@@ -4,8 +4,9 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   deleteHabit,
   updateHabit,
-  toggleCompletion,
+  setHabitStatus,
   createHabit,
+  type HabitStatus,
 } from "@/db/actions/habits";
 import { incrementPoints } from "@/db/actions/stats";
 import { queryKeys } from "@/lib/query-keys";
@@ -21,52 +22,47 @@ export function useToggleHabit() {
     mutationFn: async ({
       habitId,
       date,
-      completed,
+      status,
     }: {
       habitId: string;
       date: string;
-      completed: boolean;
+      status: HabitStatus;
     }) => {
-      await toggleCompletion(habitId, date, completed);
-      // Increment points when completing a habit
-      if (completed) {
+      await setHabitStatus(habitId, date, status);
+      if (status === "done") {
         await incrementPoints(10);
       }
     },
-    onMutate: async ({ habitId, date, completed }) => {
-      // Cancel outgoing refetches
+    onMutate: async ({ habitId, date, status }) => {
       await queryClient.cancelQueries({
         queryKey: queryKeys.habits.completions(date),
       });
 
-      // Snapshot previous value
       const previousCompletions = queryClient.getQueryData<HabitCompletion[]>(
         queryKeys.habits.completions(date),
       );
 
-      // Optimistically update
       queryClient.setQueryData<HabitCompletion[]>(
         queryKeys.habits.completions(date),
         (old) => {
-          if (completed) {
-            return [
-              ...(old || []),
-              {
-                id: `temp-${Date.now()}`,
-                habitId,
-                completionDate: date,
-                createdAt: new Date(),
-              },
-            ];
-          }
-          return old?.filter((c) => c.habitId !== habitId) || [];
+          const without = old?.filter((c) => c.habitId !== habitId) || [];
+          if (status === "nothing") return without;
+          return [
+            ...without,
+            {
+              id: `temp-${Date.now()}`,
+              habitId,
+              completionDate: date,
+              status,
+              createdAt: new Date(),
+            },
+          ];
         },
       );
 
       return { previousCompletions };
     },
     onError: (_err, { date }, context) => {
-      // Rollback on error
       if (context?.previousCompletions) {
         queryClient.setQueryData(
           queryKeys.habits.completions(date),
@@ -75,11 +71,9 @@ export function useToggleHabit() {
       }
     },
     onSettled: (_data, _error, { date }) => {
-      // Refetch to ensure consistency
       queryClient.invalidateQueries({
         queryKey: queryKeys.habits.completions(date),
       });
-      // Invalidate completion history and all completions for streak/progress recalculation
       queryClient.invalidateQueries({
         queryKey: queryKeys.habits.allCompletions,
       });

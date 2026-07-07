@@ -8,6 +8,7 @@ import { StatsOverview } from "@/components/stats/StatsOverview";
 import { ProgressBars } from "@/components/stats/ProgressBars";
 import { TimePeriodSelector } from "@/components/stats/TimePeriodSelector";
 import { HabitCalendar } from "@/components/stats/HabitCalendar";
+import { DayCompletionDrawer } from "@/components/home/DayCompletionDrawer";
 import { BottomNav } from "@/components/layout/BottomNav";
 import { Header } from "@/components/layout/Header";
 import { SettingsModal } from "@/components/shared/SettingsModal";
@@ -69,6 +70,7 @@ export default function StatsPage() {
   const [timePeriod, setTimePeriod] = useState<TimePeriod>("weekly");
   const [analyticsView, setAnalyticsView] = useState<AnalyticsView>("calendar");
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [selectedDay, setSelectedDay] = useState<Date | null>(null);
   const { habits } = useHabitsData();
   const { stats, levelName, isPending: isStatsPending } = useStatsData();
   const { getCompletionsForDate } = useCompletionHistory();
@@ -214,6 +216,7 @@ export default function StatsPage() {
                   getCompletionsForDate={getCompletionsForDate}
                   totalHabits={habits.length}
                   timePeriod={timePeriod}
+                  onDayClick={setSelectedDay}
                 />
               </motion.div>
             )}
@@ -222,6 +225,13 @@ export default function StatsPage() {
       </main>
 
       <BottomNav />
+
+      <DayCompletionDrawer
+        isOpen={selectedDay !== null}
+        date={selectedDay}
+        onClose={() => setSelectedDay(null)}
+        habits={habits}
+      />
 
       <SettingsModal
         isOpen={isSettingsOpen}

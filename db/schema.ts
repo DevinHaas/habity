@@ -95,8 +95,10 @@ export const habitCompletions = pgTable("habit_completions", {
     .notNull()
     .references(() => habits.id, { onDelete: "cascade" }),
   completionDate: date("completion_date").notNull(),
+  // 'done' | 'failed' — absence of row = 'nothing' (default state)
+  status: text("status").notNull().default("done"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
-});
+}, (table) => [uniqueIndex("habit_completions_habit_date_unique_idx").on(table.habitId, table.completionDate)]);
 
 export const goals = pgTable(
   "goals",

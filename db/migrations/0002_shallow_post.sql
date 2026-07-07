@@ -1,0 +1,2 @@
+ALTER TABLE "habit_completions" ADD COLUMN "status" text DEFAULT 'done' NOT NULL;--> statement-breakpoint
+CREATE UNIQUE INDEX "habit_completions_habit_date_unique_idx" ON "habit_completions" USING btree ("habit_id","completion_date");

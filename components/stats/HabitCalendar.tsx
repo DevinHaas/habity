@@ -21,12 +21,14 @@ interface HabitCalendarProps {
   getCompletionsForDate: (date: Date) => HabitCompletion[];
   totalHabits: number;
   timePeriod: TimePeriod;
+  onDayClick?: (date: Date) => void;
 }
 
 export function HabitCalendar({
   getCompletionsForDate,
   totalHabits,
   timePeriod,
+  onDayClick,
 }: HabitCalendarProps) {
   const [month, setMonth] = React.useState<Date>(new Date());
   const [year, setYear] = React.useState<number>(new Date().getFullYear());
@@ -36,6 +38,7 @@ export function HabitCalendar({
       <WeeklyCalendar
         getCompletionsForDate={getCompletionsForDate}
         totalHabits={totalHabits}
+        onDayClick={onDayClick}
       />
     );
   }
@@ -47,6 +50,7 @@ export function HabitCalendar({
         onYearChange={setYear}
         getCompletionsForDate={getCompletionsForDate}
         totalHabits={totalHabits}
+        onDayClick={onDayClick}
       />
     );
   }
@@ -57,6 +61,7 @@ export function HabitCalendar({
       onMonthChange={setMonth}
       getCompletionsForDate={getCompletionsForDate}
       totalHabits={totalHabits}
+      onDayClick={onDayClick}
     />
   );
 }
@@ -65,9 +70,10 @@ export function HabitCalendar({
 interface WeeklyCalendarProps {
   getCompletionsForDate: (date: Date) => HabitCompletion[];
   totalHabits: number;
+  onDayClick?: (date: Date) => void;
 }
 
-function WeeklyCalendar({ getCompletionsForDate, totalHabits }: WeeklyCalendarProps) {
+function WeeklyCalendar({ getCompletionsForDate, totalHabits, onDayClick }: WeeklyCalendarProps) {
   const [weekStart, setWeekStart] = React.useState<Date>(() => {
     const today = new Date();
     const day = today.getDay();
@@ -142,20 +148,25 @@ function WeeklyCalendar({ getCompletionsForDate, totalHabits }: WeeklyCalendarPr
       <div className="grid grid-cols-7 gap-2">
         {weekDays.map((date, index) => {
           const completions = getCompletionsForDate(date);
-          const percentage = totalHabits > 0 ? Math.round((completions.length / totalHabits) * 100) : 0;
+          const hasFailed = completions.some((c) => c.status === "failed");
+          const doneCount = completions.filter((c) => c.status !== "failed").length;
+          const isFailedOnly = hasFailed && doneCount === 0;
+          const percentage = totalHabits > 0 ? Math.round((doneCount / totalHabits) * 100) : 0;
           const isComplete = percentage === 100;
           const hasActivity = completions.length > 0;
           const isToday = isSameDay(date, new Date());
 
           return (
-            <div
+            <button
               key={index}
+              onClick={() => onDayClick?.(date)}
               className={cn(
                 "flex flex-col items-center p-2 rounded-xl transition-all",
                 isComplete && "bg-emerald-500/20 ring-1 ring-emerald-500/30",
-                !isComplete && hasActivity && "bg-muted/50",
-                !isComplete && !hasActivity && "bg-muted/20",
-                isToday && !isComplete && "ring-2 ring-primary/50"
+                isFailedOnly && "bg-red-500/15 ring-1 ring-red-500/25",
+                !isComplete && !isFailedOnly && hasActivity && "bg-muted/50",
+                !isComplete && !isFailedOnly && !hasActivity && "bg-muted/20 hover:bg-muted/40",
+                isToday && !isComplete && !isFailedOnly && "ring-2 ring-primary/50"
               )}
             >
               <span className="text-xs text-muted-foreground mb-1">
@@ -163,12 +174,13 @@ function WeeklyCalendar({ getCompletionsForDate, totalHabits }: WeeklyCalendarPr
               </span>
               <span className={cn(
                 "text-lg font-semibold mb-2",
-                isToday && "text-primary",
-                isComplete && "text-emerald-600 dark:text-emerald-400"
+                isToday && !isFailedOnly && "text-primary",
+                isComplete && "text-emerald-600 dark:text-emerald-400",
+                isFailedOnly && "text-red-500 dark:text-red-400"
               )}>
                 {date.getDate()}
               </span>
-              
+
               {/* Progress Circle */}
               <div className="relative size-10">
                 <svg className="size-10 -rotate-90" viewBox="0 0 36 36">
@@ -187,6 +199,7 @@ function WeeklyCalendar({ getCompletionsForDate, totalHabits }: WeeklyCalendarPr
                     fill="none"
                     className={cn(
                       "transition-all duration-300",
+                      isFailedOnly ? "stroke-red-500" :
                       percentage === 100 ? "stroke-emerald-500" :
                       percentage >= 75 ? "stroke-emerald-400" :
                       percentage >= 50 ? "stroke-amber-400" :
@@ -194,18 +207,20 @@ function WeeklyCalendar({ getCompletionsForDate, totalHabits }: WeeklyCalendarPr
                       "stroke-orange-300"
                     )}
                     strokeWidth="3"
-                    strokeDasharray={`${percentage * 0.94} 100`}
+                    strokeDasharray={isFailedOnly ? "94 100" : `${percentage * 0.94} 100`}
                     strokeLinecap="round"
                   />
                 </svg>
                 <span className={cn(
                   "absolute inset-0 flex items-center justify-center text-[10px] font-medium",
-                  isComplete ? "text-emerald-600 dark:text-emerald-400" : "text-muted-foreground"
+                  isComplete ? "text-emerald-600 dark:text-emerald-400" :
+                  isFailedOnly ? "text-red-500 dark:text-red-400" :
+                  "text-muted-foreground"
                 )}>
-                  {percentage}%
+                  {isFailedOnly ? "0%" : `${percentage}%`}
                 </span>
               </div>
-            </div>
+            </button>
           );
         })}
       </div>
@@ -219,6 +234,7 @@ interface MonthlyCalendarProps {
   onMonthChange: (date: Date) => void;
   getCompletionsForDate: (date: Date) => HabitCompletion[];
   totalHabits: number;
+  onDayClick?: (date: Date) => void;
 }
 
 function MonthlyCalendar({
@@ -226,6 +242,7 @@ function MonthlyCalendar({
   onMonthChange,
   getCompletionsForDate,
   totalHabits,
+  onDayClick,
 }: MonthlyCalendarProps) {
   const defaultClassNames = getDefaultClassNames();
 
@@ -240,6 +257,7 @@ function MonthlyCalendar({
         mode="single"
         month={month}
         onMonthChange={onMonthChange}
+        onSelect={(date) => date && onDayClick?.(date)}
         showOutsideDays={true}
         className={cn(
           "w-full bg-transparent p-0 [--cell-size:--spacing(10)]",
@@ -340,6 +358,7 @@ interface YearlyHeatmapProps {
   onYearChange: (year: number) => void;
   getCompletionsForDate: (date: Date) => HabitCompletion[];
   totalHabits: number;
+  onDayClick?: (date: Date) => void;
 }
 
 function YearlyHeatmap({
@@ -347,6 +366,7 @@ function YearlyHeatmap({
   onYearChange,
   getCompletionsForDate,
   totalHabits,
+  onDayClick,
 }: YearlyHeatmapProps) {
   const monthNames = [
     "Jan", "Feb", "Mar", "Apr", "May", "Jun",
@@ -370,11 +390,15 @@ function YearlyHeatmap({
     return days;
   };
 
-  // 3 states: 0 = empty, 1 = partial (orange), 2 = complete (green)
+  // 4 states: 0 = empty, 1 = partial/orange, 2 = complete/green, 3 = failed/red
   const getCompletionState = (date: Date): number => {
     const completions = getCompletionsForDate(date);
     if (totalHabits === 0 || completions.length === 0) return 0;
-    if (completions.length >= totalHabits) return 2;
+    const hasDone = completions.some((c) => c.status !== "failed");
+    const hasFailed = completions.some((c) => c.status === "failed");
+    if (!hasDone && hasFailed) return 3;
+    const doneCount = completions.filter((c) => c.status !== "failed").length;
+    if (doneCount >= totalHabits) return 2;
     return 1;
   };
 
@@ -384,10 +408,11 @@ function YearlyHeatmap({
         case 0: return "bg-muted/40";
         case 1: return "bg-orange-400 dark:bg-orange-500";
         case 2: return "bg-emerald-500 dark:bg-emerald-400";
+        case 3: return "bg-red-500 dark:bg-red-400";
         default: return "bg-muted/40";
       }
     })();
-    
+
     if (isToday) {
       return cn(baseColor, "ring-2 ring-primary ring-offset-1 ring-offset-card");
     }
@@ -457,15 +482,17 @@ function YearlyHeatmap({
                   const isFuture = date > today;
                   
                   return (
-                    <div
+                    <button
                       key={dayIndex}
+                      onClick={() => !isFuture && onDayClick?.(date)}
+                      disabled={isFuture}
                       className={cn(
                         "aspect-square rounded-[2px] transition-all",
-                        isFuture ? "bg-muted/20" : getStateColor(state, isToday)
+                        isFuture ? "bg-muted/20 cursor-default" : cn(getStateColor(state, isToday), "hover:opacity-75")
                       )}
                       title={`${date.toLocaleDateString()}: ${
-                        state === 0 ? 'Not done' : 
-                        state === 1 ? 'Partially done' : 
+                        state === 0 ? 'Not done' :
+                        state === 1 ? 'Partially done' :
                         'Complete'
                       }`}
                     />
@@ -489,7 +516,11 @@ function YearlyHeatmap({
         </div>
         <div className="flex items-center gap-1">
           <div className="size-[10px] rounded-[2px] bg-emerald-500 dark:bg-emerald-400" />
-          <span>Complete</span>
+          <span>Done</span>
+        </div>
+        <div className="flex items-center gap-1">
+          <div className="size-[10px] rounded-[2px] bg-red-500 dark:bg-red-400" />
+          <span>Failed</span>
         </div>
       </div>
     </motion.div>
@@ -514,8 +545,12 @@ function HabitDayButton({
   const ref = React.useRef<HTMLButtonElement>(null);
   
   const completions = getCompletionsForDate(day.date);
-  const percentage = totalHabits > 0 ? Math.round((completions.length / totalHabits) * 100) : 0;
+  const hasDone = completions.some((c) => c.status !== "failed");
+  const hasFailed = completions.some((c) => c.status === "failed");
+  const doneCount = completions.filter((c) => c.status !== "failed").length;
+  const percentage = totalHabits > 0 ? Math.round((doneCount / totalHabits) * 100) : 0;
   const isComplete = percentage === 100;
+  const isFailedOnly = hasFailed && !hasDone;
   const isToday = modifiers.today;
   const isOutside = modifiers.outside;
   const hasActivity = completions.length > 0;
@@ -548,7 +583,8 @@ function HabitDayButton({
       className={cn(
         "flex flex-col items-center justify-between w-full aspect-square p-1 rounded-lg transition-all",
         isComplete && "bg-emerald-500/20 ring-1 ring-emerald-500/30",
-        !isComplete && hasActivity && "bg-muted/50",
+        isFailedOnly && "bg-red-500/15 ring-1 ring-red-500/25",
+        !isComplete && !isFailedOnly && hasActivity && "bg-muted/50",
         !isComplete && !hasActivity && "hover:bg-muted/30",
         isToday && !isComplete && "ring-2 ring-primary/50",
         isOutside && "opacity-30",
@@ -562,7 +598,8 @@ function HabitDayButton({
         "text-sm font-medium leading-none mt-0.5",
         isToday && "text-primary font-bold",
         isComplete && "text-emerald-700 dark:text-emerald-300",
-        !isToday && !isComplete && "text-foreground"
+        isFailedOnly && "text-red-600 dark:text-red-400",
+        !isToday && !isComplete && !isFailedOnly && "text-foreground"
       )}>
         {day.date.getDate()}
       </span>

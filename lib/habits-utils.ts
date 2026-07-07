@@ -1,8 +1,9 @@
 import type { habitCompletions } from "@/db/schema";
 
 export type TimeOfDay = "morning" | "day" | "evening";
+export type HabitStatus = "done" | "failed" | "nothing";
 
-type DbCompletion = typeof habitCompletions.$inferSelect;
+type DbCompletion = typeof habitCompletions.$inferSelect & { status: string };
 
 export interface Habit {
   id: string;
@@ -10,7 +11,8 @@ export interface Habit {
   icon: string;
   streak: number;
   duration: string;
-  completed: boolean;
+  completed: boolean; // true when status === 'done'
+  status: HabitStatus;
   color: string;
   repeatDays: number[];
   timeOfDay: TimeOfDay;
@@ -20,6 +22,7 @@ export interface HabitCompletion {
   habitId: string;
   habitName: string;
   color: string;
+  status: HabitStatus;
 }
 
 export interface DayCompletion {
@@ -78,83 +81,60 @@ export function calculateStreak(
   habitId: string,
   completions: DbCompletion[]
 ): number {
-  const habitCompletions = completions
+  const logs = new Map<string, string>();
+  completions
     .filter((c) => c.habitId === habitId)
-    .map((c) => c.completionDate)
-    .sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
-
-  if (habitCompletions.length === 0) return 0;
+    .forEach((c) => logs.set(c.completionDate, c.status ?? "done"));
 
   let streak = 0;
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
-  for (let i = 0; i < habitCompletions.length; i++) {
-    const completionDate = new Date(habitCompletions[i]);
-    completionDate.setHours(0, 0, 0, 0);
+  // done = count, failed = stop, nothing (no row) = skip
+  for (let i = 0; i < 365; i++) {
+    const d = new Date(today);
+    d.setDate(d.getDate() - i);
+    const dateStr = formatLocalDate(d);
+    const status = logs.get(dateStr) ?? "nothing";
 
-    const expectedDate = new Date(today);
-    expectedDate.setDate(expectedDate.getDate() - i);
-
-    if (completionDate.getTime() === expectedDate.getTime()) {
+    if (status === "done") {
       streak++;
-    } else if (
-      i === 0 &&
-      completionDate.getTime() === expectedDate.getTime() - 86400000
-    ) {
-      const yesterday = new Date(today);
-      yesterday.setDate(yesterday.getDate() - 1);
-      if (completionDate.getTime() === yesterday.getTime()) {
-        streak++;
-      }
-    } else {
+    } else if (status === "failed") {
       break;
     }
+    // nothing → skip (don't break streak)
   }
 
   return streak;
 }
 
 export function calculateCurrentStreak(completions: DbCompletion[]): number {
-  const uniqueDates = [
-    ...new Set(completions.map((c) => c.completionDate)),
-  ].sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
-
-  if (uniqueDates.length === 0) return 0;
+  // Build a map: date → has any 'done'
+  const doneDates = new Set(
+    completions.filter((c) => (c.status ?? "done") === "done").map((c) => c.completionDate)
+  );
+  const failedOnlyDates = new Set(
+    completions
+      .filter((c) => c.status === "failed" && !doneDates.has(c.completionDate))
+      .map((c) => c.completionDate)
+  );
 
   let streak = 0;
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
-  for (let i = 0; i < uniqueDates.length; i++) {
-    const completionDate = new Date(uniqueDates[i]);
-    completionDate.setHours(0, 0, 0, 0);
+  // done = count, failed-only = stop, nothing = skip
+  for (let i = 0; i < 365; i++) {
+    const d = new Date(today);
+    d.setDate(d.getDate() - i);
+    const dateStr = formatLocalDate(d);
 
-    const expectedDate = new Date(today);
-    expectedDate.setDate(expectedDate.getDate() - i);
-
-    if (i === 0) {
-      const yesterday = new Date(today);
-      yesterday.setDate(yesterday.getDate() - 1);
-      if (
-        completionDate.getTime() === today.getTime() ||
-        completionDate.getTime() === yesterday.getTime()
-      ) {
-        streak++;
-        if (completionDate.getTime() === yesterday.getTime()) {
-          today.setDate(today.getDate() - 1);
-        }
-        continue;
-      } else {
-        break;
-      }
-    }
-
-    if (completionDate.getTime() === expectedDate.getTime()) {
+    if (doneDates.has(dateStr)) {
       streak++;
-    } else {
+    } else if (failedOnlyDates.has(dateStr)) {
       break;
     }
+    // nothing → skip
   }
 
   return streak;

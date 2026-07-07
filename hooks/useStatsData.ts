@@ -56,7 +56,7 @@ export function useStatsData() {
             ) + 1
           );
           const completionCount = allCompletions.filter(
-            (c) => c.habitId === h.id
+            (c) => c.habitId === h.id && (c.status ?? "done") === "done"
           ).length;
           progress = Math.min(
             (completionCount / daysSinceCreation) * 100,

@@ -28,6 +28,7 @@ export function useCompletionHistory() {
         habitId: completion.habitId,
         habitName: habit?.name || "Unknown",
         color: habit?.color || "#888",
+        status: (completion.status ?? "done") as HabitCompletion["status"],
       });
     });
 

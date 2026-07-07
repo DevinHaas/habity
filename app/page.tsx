@@ -38,8 +38,10 @@ export default function HomePage() {
     const habit = habits.find((h) => h.id === id);
     if (!habit) return;
     const wasCompleted = habit.completed;
+    // Home page cycles nothing ↔ done only; failed is set via stats drawer
+    const newStatus = habit.completed ? "nothing" : "done";
     toggleMutation.mutate(
-      { habitId: id, date: todayString, completed: !habit.completed },
+      { habitId: id, date: todayString, status: newStatus },
       {
         onSuccess: () => {
           if (!wasCompleted) {
