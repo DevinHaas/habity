@@ -16,6 +16,7 @@ export interface Habit {
   color: string;
   repeatDays: number[];
   timeOfDay: TimeOfDay;
+  createdAt: string;
 }
 
 export interface HabitCompletion {
@@ -75,6 +76,10 @@ export function formatLocalDate(date: Date): string {
 
 export function getTodayString(): string {
   return formatLocalDate(new Date());
+}
+
+export function isHabitActiveOnDate(habit: { createdAt: string }, date: Date): boolean {
+  return formatLocalDate(new Date(habit.createdAt)) <= formatLocalDate(date);
 }
 
 export function calculateStreak(

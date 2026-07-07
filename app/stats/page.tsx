@@ -214,7 +214,7 @@ export default function StatsPage() {
               >
                 <HabitCalendar
                   getCompletionsForDate={getCompletionsForDate}
-                  totalHabits={habits.length}
+                  habits={habits}
                   timePeriod={timePeriod}
                   onDayClick={setSelectedDay}
                 />

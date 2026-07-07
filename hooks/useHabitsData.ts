@@ -34,6 +34,7 @@ export function useHabitsData() {
         status,
         completed: status === "done",
         streak: calculateStreak(dbHabit.id, completionHistory),
+        createdAt: new Date(dbHabit.createdAt).toISOString(),
       };
     });
   }, [dbHabits, todayCompletions, completionHistory]);

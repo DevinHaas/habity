@@ -13,20 +13,20 @@ import {
 } from "react-day-picker";
 import { cn } from "@/lib/utils";
 import { buttonVariants } from "@/components/ui/button";
-import type { HabitCompletion } from "@/lib/habits-utils";
+import { isHabitActiveOnDate, type Habit, type HabitCompletion } from "@/lib/habits-utils";
 
 type TimePeriod = "weekly" | "monthly" | "yearly";
 
 interface HabitCalendarProps {
   getCompletionsForDate: (date: Date) => HabitCompletion[];
-  totalHabits: number;
+  habits: Habit[];
   timePeriod: TimePeriod;
   onDayClick?: (date: Date) => void;
 }
 
 export function HabitCalendar({
   getCompletionsForDate,
-  totalHabits,
+  habits,
   timePeriod,
   onDayClick,
 }: HabitCalendarProps) {
@@ -37,7 +37,7 @@ export function HabitCalendar({
     return (
       <WeeklyCalendar
         getCompletionsForDate={getCompletionsForDate}
-        totalHabits={totalHabits}
+        habits={habits}
         onDayClick={onDayClick}
       />
     );
@@ -49,7 +49,7 @@ export function HabitCalendar({
         year={year}
         onYearChange={setYear}
         getCompletionsForDate={getCompletionsForDate}
-        totalHabits={totalHabits}
+        habits={habits}
         onDayClick={onDayClick}
       />
     );
@@ -60,7 +60,7 @@ export function HabitCalendar({
       month={month}
       onMonthChange={setMonth}
       getCompletionsForDate={getCompletionsForDate}
-      totalHabits={totalHabits}
+      habits={habits}
       onDayClick={onDayClick}
     />
   );
@@ -69,11 +69,11 @@ export function HabitCalendar({
 // ============ WEEKLY CALENDAR ============
 interface WeeklyCalendarProps {
   getCompletionsForDate: (date: Date) => HabitCompletion[];
-  totalHabits: number;
+  habits: Habit[];
   onDayClick?: (date: Date) => void;
 }
 
-function WeeklyCalendar({ getCompletionsForDate, totalHabits, onDayClick }: WeeklyCalendarProps) {
+function WeeklyCalendar({ getCompletionsForDate, habits, onDayClick }: WeeklyCalendarProps) {
   const [weekStart, setWeekStart] = React.useState<Date>(() => {
     const today = new Date();
     const day = today.getDay();
@@ -151,6 +151,7 @@ function WeeklyCalendar({ getCompletionsForDate, totalHabits, onDayClick }: Week
           const hasFailed = completions.some((c) => c.status === "failed");
           const doneCount = completions.filter((c) => c.status !== "failed").length;
           const isFailedOnly = hasFailed && doneCount === 0;
+          const totalHabits = habits.filter((h) => isHabitActiveOnDate(h, date)).length;
           const percentage = totalHabits > 0 ? Math.round((doneCount / totalHabits) * 100) : 0;
           const isComplete = percentage === 100;
           const hasActivity = completions.length > 0;
@@ -233,7 +234,7 @@ interface MonthlyCalendarProps {
   month: Date;
   onMonthChange: (date: Date) => void;
   getCompletionsForDate: (date: Date) => HabitCompletion[];
-  totalHabits: number;
+  habits: Habit[];
   onDayClick?: (date: Date) => void;
 }
 
@@ -241,7 +242,7 @@ function MonthlyCalendar({
   month,
   onMonthChange,
   getCompletionsForDate,
-  totalHabits,
+  habits,
   onDayClick,
 }: MonthlyCalendarProps) {
   const defaultClassNames = getDefaultClassNames();
@@ -343,7 +344,7 @@ function MonthlyCalendar({
             <HabitDayButton
               {...props}
               getCompletionsForDate={getCompletionsForDate}
-              totalHabits={totalHabits}
+              habits={habits}
             />
           ),
         }}
@@ -357,7 +358,7 @@ interface YearlyHeatmapProps {
   year: number;
   onYearChange: (year: number) => void;
   getCompletionsForDate: (date: Date) => HabitCompletion[];
-  totalHabits: number;
+  habits: Habit[];
   onDayClick?: (date: Date) => void;
 }
 
@@ -365,7 +366,7 @@ function YearlyHeatmap({
   year,
   onYearChange,
   getCompletionsForDate,
-  totalHabits,
+  habits,
   onDayClick,
 }: YearlyHeatmapProps) {
   const monthNames = [
@@ -393,6 +394,7 @@ function YearlyHeatmap({
   // 4 states: 0 = empty, 1 = partial/orange, 2 = complete/green, 3 = failed/red
   const getCompletionState = (date: Date): number => {
     const completions = getCompletionsForDate(date);
+    const totalHabits = habits.filter((h) => isHabitActiveOnDate(h, date)).length;
     if (totalHabits === 0 || completions.length === 0) return 0;
     const hasDone = completions.some((c) => c.status !== "failed");
     const hasFailed = completions.some((c) => c.status === "failed");
@@ -530,7 +532,7 @@ function YearlyHeatmap({
 // ============ HELPER COMPONENTS ============
 interface HabitDayButtonProps extends React.ComponentProps<typeof DayButton> {
   getCompletionsForDate: (date: Date) => HabitCompletion[];
-  totalHabits: number;
+  habits: Habit[];
 }
 
 function HabitDayButton({
@@ -538,16 +540,17 @@ function HabitDayButton({
   day,
   modifiers,
   getCompletionsForDate,
-  totalHabits,
+  habits,
   ...props
 }: HabitDayButtonProps) {
   const defaultClassNames = getDefaultClassNames();
   const ref = React.useRef<HTMLButtonElement>(null);
-  
+
   const completions = getCompletionsForDate(day.date);
   const hasDone = completions.some((c) => c.status !== "failed");
   const hasFailed = completions.some((c) => c.status === "failed");
   const doneCount = completions.filter((c) => c.status !== "failed").length;
+  const totalHabits = habits.filter((h) => isHabitActiveOnDate(h, day.date)).length;
   const percentage = totalHabits > 0 ? Math.round((doneCount / totalHabits) * 100) : 0;
   const isComplete = percentage === 100;
   const isFailedOnly = hasFailed && !hasDone;

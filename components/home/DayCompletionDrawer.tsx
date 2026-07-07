@@ -13,7 +13,7 @@ import {
 import { cn } from "@/lib/utils";
 import { useCompletionsQuery } from "@/hooks/queries/useHabitsQuery";
 import { useToggleHabit } from "@/hooks/mutations/useHabitMutations";
-import type { Habit, TimeOfDay, HabitStatus } from "@/lib/habits-utils";
+import { isHabitActiveOnDate, type Habit, type TimeOfDay, type HabitStatus } from "@/lib/habits-utils";
 
 interface DayCompletionDrawerProps {
   isOpen: boolean;
@@ -52,11 +52,13 @@ export function DayCompletionDrawer({ isOpen, date, onClose, habits }: DayComple
 
   const future = date ? isFuture(date) : false;
 
+  const activeHabits = date ? habits.filter((h) => isHabitActiveOnDate(h, date)) : habits;
+
   const formattedDate = date
     ? date.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })
     : "";
 
-  const grouped = habits.reduce(
+  const grouped = activeHabits.reduce(
     (acc, h) => {
       const t = h.timeOfDay || "morning";
       if (!acc[t]) acc[t] = [];
@@ -88,7 +90,7 @@ export function DayCompletionDrawer({ isOpen, date, onClose, habits }: DayComple
             <div>
               <DrawerTitle className="text-xl font-bold">{formattedDate}</DrawerTitle>
               <DrawerDescription className="mt-1">
-                {completions.length} of {habits.length} completed
+                {completions.length} of {activeHabits.length} completed
               </DrawerDescription>
             </div>
             <DrawerClose asChild>
@@ -103,7 +105,7 @@ export function DayCompletionDrawer({ isOpen, date, onClose, habits }: DayComple
         </DrawerHeader>
 
         <div className="overflow-y-auto flex-1 px-6 py-4">
-          {habits.length === 0 ? (
+          {activeHabits.length === 0 ? (
             <div className="text-center py-12">
               <p className="text-muted-foreground">No habits yet</p>
             </div>
