@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { motion, useMotionValue, useTransform, animate, PanInfo } from "framer-motion";
+import { motion, useMotionValue, useTransform, animate, PanInfo, DragControls } from "framer-motion";
 import { Clock, Check, Pencil, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useFeedback } from "@/hooks";
@@ -16,6 +16,10 @@ interface HabitCardProps {
   index?: number;
   completedCount: number;
   totalCount: number;
+  // Swipe only ever starts when the row's gesture arbiter calls
+  // swipeControls.start() — no drag listener of its own, so it can never
+  // race the reorder drag for the same pointer.
+  swipeControls: DragControls;
 }
 
 const SWIPE_THRESHOLD = 80;
@@ -26,9 +30,10 @@ export function HabitCard({
   onToggle, 
   onEdit,
   onDelete,
-  index = 0, 
-  completedCount, 
-  totalCount 
+  index = 0,
+  completedCount,
+  totalCount,
+  swipeControls,
 }: HabitCardProps) {
   const { onHabitComplete } = useFeedback();
   const [showConfetti, setShowConfetti] = useState(false);
@@ -116,10 +121,12 @@ export function HabitCard({
           <motion.div
             style={{ x }}
             drag="x"
+            dragListener={false}
+            dragControls={swipeControls}
             dragConstraints={{ left: -ACTION_WIDTH, right: 0 }}
             dragElastic={0.1}
             onDragEnd={handleDragEnd}
-            className="flex items-center gap-2.5 rounded-xl bg-card p-2.5 shadow-sm relative z-10 cursor-grab active:cursor-grabbing touch-pan-y"
+            className="flex items-center gap-2.5 rounded-xl bg-card p-2.5 shadow-sm relative z-10 touch-pan-y"
           >
             {/* Checkbox */}
             <motion.button

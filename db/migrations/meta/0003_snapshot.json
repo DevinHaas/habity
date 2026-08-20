@@ -1,6 +1,6 @@
 {
-  "id": "af693d1a-4b92-4f91-888f-eb0457ca7f97",
-  "prevId": "9b67f082-70fe-4f5e-b5fe-8c682e736da7",
+  "id": "1b755e57-231b-48d7-bd47-cb642c783338",
+  "prevId": "af693d1a-4b92-4f91-888f-eb0457ca7f97",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -267,6 +267,13 @@
           "primaryKey": false,
           "notNull": true
         },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'done'"
+        },
         "created_at": {
           "name": "created_at",
           "type": "timestamp",
@@ -275,7 +282,29 @@
           "default": "now()"
         }
       },
-      "indexes": {},
+      "indexes": {
+        "habit_completions_habit_date_unique_idx": {
+          "name": "habit_completions_habit_date_unique_idx",
+          "columns": [
+            {
+              "expression": "habit_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "completion_date",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
       "foreignKeys": {
         "habit_completions_habit_id_habits_id_fk": {
           "name": "habit_completions_habit_id_habits_id_fk",
@@ -350,6 +379,13 @@
           "primaryKey": false,
           "notNull": true,
           "default": "'morning'"
+        },
+        "sort_order": {
+          "name": "sort_order",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
         },
         "created_at": {
           "name": "created_at",
