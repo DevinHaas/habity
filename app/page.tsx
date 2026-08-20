@@ -13,6 +13,7 @@ import {
   useToggleHabit,
   useUpdateHabit,
   useDeleteHabit,
+  useReorderHabits,
 } from "@/hooks/mutations/useHabitMutations";
 import { getTodayString as getToday } from "@/lib/habits-utils";
 import { toast } from "@/lib/ToastProvider";
@@ -33,6 +34,7 @@ export default function HomePage() {
   const toggleMutation = useToggleHabit();
   const updateMutation = useUpdateHabit();
   const deleteMutation = useDeleteHabit();
+  const reorderMutation = useReorderHabits();
   const { playCoin } = useSoundEffects();
   const todayString = getToday();
 
@@ -77,6 +79,10 @@ export default function HomePage() {
 
   function removeHabit(id: string) {
     deleteMutation.mutate(id);
+  }
+
+  function reorderHabits(orders: { id: string; sortOrder: number }[]) {
+    reorderMutation.mutate(orders);
   }
 
   // Success screen state
@@ -201,6 +207,7 @@ export default function HomePage() {
               onToggleHabit={toggleHabit}
               onEditHabit={updateHabit}
               onDeleteHabit={removeHabit}
+              onReorderHabits={reorderHabits}
               completedCount={completedCount}
               totalCount={totalCount}
             />

@@ -6,6 +6,7 @@ import {
   updateHabit,
   setHabitStatus,
   createHabit,
+  reorderHabits,
   type HabitStatus,
 } from "@/db/actions/habits";
 import { incrementPoints } from "@/db/actions/stats";
@@ -181,6 +182,45 @@ export function useUpdateHabit() {
       return { previousHabits };
     },
     onError: (_err, _variables, context) => {
+      if (context?.previousHabits) {
+        queryClient.setQueryData(queryKeys.habits.all, context.previousHabits);
+      }
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.habits.all });
+    },
+  });
+}
+
+export function useReorderHabits() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (orders: { id: string; sortOrder: number }[]) =>
+      reorderHabits(orders),
+    onMutate: async (orders) => {
+      await queryClient.cancelQueries({ queryKey: queryKeys.habits.all });
+
+      const previousHabits = queryClient.getQueryData<Habit[]>(
+        queryKeys.habits.all,
+      );
+
+      const sortOrderById = new Map(orders.map((o) => [o.id, o.sortOrder]));
+      queryClient.setQueryData<Habit[]>(
+        queryKeys.habits.all,
+        (old) =>
+          old
+            ?.map((h) =>
+              sortOrderById.has(h.id)
+                ? { ...h, sortOrder: sortOrderById.get(h.id)! }
+                : h,
+            )
+            .sort((a, b) => a.sortOrder - b.sortOrder) || [],
+      );
+
+      return { previousHabits };
+    },
+    onError: (_err, _orders, context) => {
       if (context?.previousHabits) {
         queryClient.setQueryData(queryKeys.habits.all, context.previousHabits);
       }

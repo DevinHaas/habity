@@ -31,6 +31,7 @@ export function useHabitsData() {
         color: dbHabit.color,
         repeatDays: dbHabit.repeatDays,
         timeOfDay: ((dbHabit.timeOfDay as TimeOfDay) || "morning") as TimeOfDay,
+        sortOrder: dbHabit.sortOrder,
         status,
         completed: status === "done",
         streak: calculateStreak(dbHabit.id, completionHistory),

@@ -86,6 +86,7 @@ export const habits = pgTable('habits', {
   color: text('color').notNull(),
   repeatDays: integer('repeat_days').array().notNull(),
   timeOfDay: text('time_of_day').notNull().default('morning'),
+  sortOrder: integer('sort_order').notNull().default(0),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 }, (table) => [uniqueIndex("habits_userId_name_unique_idx").on(table.userId, table.name)]);
 

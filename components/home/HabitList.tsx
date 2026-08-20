@@ -23,6 +23,7 @@ interface HabitListProps {
   onToggleHabit: (id: string) => void;
   onEditHabit: (id: string, data: Partial<Omit<Habit, "id" | "streak" | "completed">>) => void;
   onDeleteHabit: (id: string) => void;
+  onReorderHabits: (orders: { id: string; sortOrder: number }[]) => void;
   completedCount: number;
   totalCount: number;
 }
@@ -35,6 +36,7 @@ export function HabitList({
   onToggleHabit,
   onEditHabit,
   onDeleteHabit,
+  onReorderHabits,
   completedCount,
   totalCount
 }: HabitListProps) {
@@ -133,6 +135,7 @@ export function HabitList({
                   onToggleHabit={onToggleHabit}
                   onEditHabit={handleEditHabit}
                   onDeleteHabit={handleDeleteHabit}
+                  onReorderHabits={onReorderHabits}
                   completedCount={completedCount}
                   totalCount={totalCount}
                 />

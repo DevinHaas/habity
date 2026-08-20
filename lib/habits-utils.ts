@@ -16,6 +16,7 @@ export interface Habit {
   color: string;
   repeatDays: number[];
   timeOfDay: TimeOfDay;
+  sortOrder: number;
   createdAt: string;
 }
 

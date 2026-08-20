@@ -2,6 +2,11 @@ export { useSoundEffects } from "./useSoundEffects";
 export { useHaptics } from "./useHaptics";
 export { useFeedback } from "./useFeedback";
 export { useAmbientSound } from "./useAmbientSound";
+export {
+  useCompletionSound,
+  COMPLETION_SOUNDS,
+  type CompletionSoundId,
+} from "./useCompletionSound";
 export { useTimeOfDay, type TimeOfDay } from "./useTimeOfDay";
 export { useHabitsData } from "./useHabitsData";
 export { useStatsData } from "./useStatsData";

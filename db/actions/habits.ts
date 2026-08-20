@@ -26,7 +26,21 @@ export async function getHabits() {
     .select()
     .from(habits)
     .where(eq(habits.userId, userId))
-    .orderBy(habits.createdAt);
+    .orderBy(habits.sortOrder, habits.createdAt);
+}
+
+export async function reorderHabits(
+  orders: { id: string; sortOrder: number }[],
+) {
+  const userId = await getCurrentUserId();
+  await Promise.all(
+    orders.map(({ id, sortOrder }) =>
+      db
+        .update(habits)
+        .set({ sortOrder })
+        .where(and(eq(habits.id, id), eq(habits.userId, userId))),
+    ),
+  );
 }
 
 export async function createHabit(

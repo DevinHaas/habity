@@ -2,11 +2,18 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Volume2, VolumeX, LogOut } from "lucide-react";
-import { useAmbientSound } from "@/hooks";
+import { X, Volume2, VolumeX, LogOut, Play } from "lucide-react";
+import { useAmbientSound, useCompletionSound, COMPLETION_SOUNDS } from "@/hooks";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { signOut } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
@@ -19,6 +26,7 @@ interface SettingsModalProps {
 export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
   const { isPlaying, toggleAmbient, volume, setVolume } = useAmbientSound();
   const [localVolume, setLocalVolume] = useState(volume);
+  const { soundId, setSoundId, preview } = useCompletionSound();
   const router = useRouter();
   const queryClient = useQueryClient();
 
@@ -125,6 +133,42 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                     }}
                   />
                 </div>
+                {/* Completion Sound */}
+                <div className="space-y-2">
+                  <Label htmlFor="completion-sound" className="text-base font-medium">
+                    Completion Sound
+                  </Label>
+                  <p className="text-sm text-muted-foreground">
+                    Sound played when you complete a habit
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <Select
+                      value={soundId}
+                      onValueChange={(value) => setSoundId(value as keyof typeof COMPLETION_SOUNDS)}
+                    >
+                      <SelectTrigger id="completion-sound" className="flex-1">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {Object.entries(COMPLETION_SOUNDS).map(([id, sound]) => (
+                          <SelectItem key={id} value={id}>
+                            {sound.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <button
+                      type="button"
+                      onClick={() => preview(soundId)}
+                      disabled={soundId === "none"}
+                      aria-label="Preview completion sound"
+                      className="rounded-full p-2 border hover:bg-muted transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                    >
+                      <Play className="h-4 w-4" />
+                    </button>
+                  </div>
+                </div>
+
                 {/* Logout */}
                 <div className="pt-2 border-t">
                   <button

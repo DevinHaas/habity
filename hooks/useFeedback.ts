@@ -3,15 +3,17 @@
 import { useCallback } from "react";
 import { useSoundEffects } from "./useSoundEffects";
 import { useHaptics } from "./useHaptics";
+import { useCompletionSound } from "./useCompletionSound";
 
 export function useFeedback() {
   const sounds = useSoundEffects();
   const haptics = useHaptics();
+  const { playCompletionSound } = useCompletionSound();
 
   const onHabitComplete = useCallback(() => {
-    sounds.playComplete();
+    playCompletionSound();
     haptics.tapMedium();
-  }, [sounds, haptics]);
+  }, [playCompletionSound, haptics]);
 
   const onHabitAdded = useCallback(() => {
     sounds.playSuccess();
