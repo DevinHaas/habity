@@ -254,7 +254,7 @@ function TimelineRow({
         scale: 1.03,
         zIndex: 50,
       }}
-      className="relative flex bg-card rounded-xl cursor-grab active:cursor-grabbing"
+      className="group relative flex bg-card rounded-xl cursor-grab active:cursor-grabbing"
     >
       {/* Timeline Node and Connector — also a drag handle */}
       <div className="relative z-10 flex flex-col items-center mr-2.5">
@@ -312,11 +312,17 @@ function TimelineRow({
         />
       </div>
 
-      {/* Visible grip handle — the only cue on mobile (no hover cursor) that
-          the row can be picked up and reordered. Wide hit target for touch. */}
+      {/* Visible grip handle — cue that the row can be picked up and
+          reordered. Always rendered by default (touch has no hover state to
+          reveal it on) — `any-pointer`/`any-hover` misreport inside
+          installed PWAs, so gating base visibility on them hid the handle
+          on mobile. `hover:hover` here only *dims it by default on devices
+          that truly support hover*, revealed on row hover; touch devices
+          never match `hover:hover` so they keep it always-on. 44px min hit
+          target per platform touch-target specs. */}
       <div
         data-drag-handle
-        className="flex w-9 shrink-0 items-center justify-center text-muted-foreground/40 touch-none cursor-grab active:cursor-grabbing [@media(any-pointer:fine)]:hidden"
+        className="flex w-11 h-11 shrink-0 items-center justify-center text-muted-foreground/40 touch-none cursor-grab active:cursor-grabbing [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover:opacity-100 transition-opacity"
         onPointerDown={(e) => controls.start(e)}
       >
         <GripVertical className="h-5 w-5" />
