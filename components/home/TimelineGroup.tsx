@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { motion, Reorder, useDragControls } from "framer-motion";
-import { Sun, SunDim, Moon } from "lucide-react";
+import { Sun, SunDim, Moon, GripVertical } from "lucide-react";
 import { HabitCard } from "@/components/habits/HabitCard";
 import type { Habit, TimeOfDay } from "@/lib/habits-utils";
 
@@ -310,6 +310,16 @@ function TimelineRow({
           totalCount={totalCount}
           swipeControls={swipeControls}
         />
+      </div>
+
+      {/* Visible grip handle — the only cue on mobile (no hover cursor) that
+          the row can be picked up and reordered. Wide hit target for touch. */}
+      <div
+        data-drag-handle
+        className="flex w-9 shrink-0 items-center justify-center text-muted-foreground/40 touch-none cursor-grab active:cursor-grabbing [@media(any-pointer:fine)]:hidden"
+        onPointerDown={(e) => controls.start(e)}
+      >
+        <GripVertical className="h-5 w-5" />
       </div>
     </Reorder.Item>
   );

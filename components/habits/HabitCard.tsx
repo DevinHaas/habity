@@ -162,7 +162,7 @@ export function HabitCard({
             <div className="flex-1 min-w-0">
               <h3
                 className={cn(
-                  "font-medium text-sm text-foreground truncate",
+                  "font-medium text-sm text-foreground line-clamp-2 break-words",
                   habit.completed && "line-through opacity-60"
                 )}
               >
