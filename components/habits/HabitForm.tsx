@@ -142,17 +142,16 @@ export function HabitForm({
               onBlur={field.handleBlur}
               className="bg-background border-border rounded-xl h-12"
             />
-            {field.state.meta.isValidating && (
-              <p className="text-sm text-muted-foreground">
-                Checking availability...
-              </p>
-            )}
-            {field.state.meta.isTouched &&
-              field.state.meta.errors.length > 0 && (
-                <p className="text-sm text-destructive">
-                  {field.state.meta.errors[0]}
-                </p>
-              )}
+            <p className="text-sm text-muted-foreground min-h-5">
+              {field.state.meta.isValidating
+                ? "Checking availability..."
+                : field.state.meta.isTouched &&
+                    field.state.meta.errors.length > 0 && (
+                      <span className="text-destructive">
+                        {field.state.meta.errors[0]}
+                      </span>
+                    )}
+            </p>
           </div>
         )}
       </form.Field>
