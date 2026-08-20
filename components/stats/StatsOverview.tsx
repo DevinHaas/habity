@@ -1,7 +1,8 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Flame, CheckCircle2, Coins } from "lucide-react";
+import { CheckCircle2 } from "lucide-react";
+import { DotLottieReact } from "@lottiefiles/dotlottie-react";
 import Image from "next/image";
 
 interface StatsOverviewProps {
@@ -23,7 +24,14 @@ export function StatsOverview({
       delay: 0.1,
     },
     {
-      icon: <Flame className="w-5 h-5 text-orange-500" />,
+      icon: (
+        <DotLottieReact
+          src="/animations/Fire%20Streak%20Orange.lottie"
+          loop
+          autoplay
+          className="w-6 h-6"
+        />
+      ),
       value: currentStreak,
       label: "Day Streak",
       delay: 0.2,

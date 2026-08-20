@@ -7,6 +7,7 @@ import { HabitList } from "@/components/home/HabitList";
 import { BottomNav, FloatingAddButton } from "@/components/layout/BottomNav";
 import { Header } from "@/components/layout/Header";
 import { SuccessScreen } from "@/components/shared/SuccessScreen";
+import { StreakScreen } from "@/components/shared/StreakScreen";
 import { useHabitsData, useStatsData, useTimeOfDay, type Habit } from "@/hooks";
 import {
   useToggleHabit,
@@ -21,9 +22,13 @@ function getSuccessShownKey(): string {
   return `successShown_${getToday()}`;
 }
 
+function getStreakShownKey(): string {
+  return `streakShown_${getToday()}`;
+}
+
 export default function HomePage() {
   const { habits, isPending } = useHabitsData();
-  const { stats } = useStatsData();
+  const { stats, isPending: isStatsPending } = useStatsData();
   const { isDay } = useTimeOfDay();
   const toggleMutation = useToggleHabit();
   const updateMutation = useUpdateHabit();
@@ -106,6 +111,24 @@ export default function HomePage() {
     // Track previous state to detect transitions
     previousAllCompletedRef.current = allCompleted;
   }, [completedCount, totalCount]);
+
+  // Streak screen state - shown once per day on first visit
+  const [showStreakScreen, setShowStreakScreen] = useState(false);
+
+  useEffect(() => {
+    if (isStatsPending) return;
+    const streakKey = getStreakShownKey();
+    const hasShownToday =
+      typeof window !== "undefined" &&
+      localStorage.getItem(streakKey) === "true";
+
+    if (!hasShownToday && stats.currentStreak > 0) {
+      if (typeof window !== "undefined") {
+        localStorage.setItem(streakKey, "true");
+      }
+      setShowStreakScreen(true);
+    }
+  }, [isStatsPending, stats.currentStreak]);
 
   // Background image changes based on time of day
   const backgroundImage = isDay
@@ -201,6 +224,13 @@ export default function HomePage() {
       <SuccessScreen
         isVisible={showSuccessScreen}
         onClose={() => setShowSuccessScreen(false)}
+      />
+
+      {/* Streak Screen - shown once per day on first visit */}
+      <StreakScreen
+        isVisible={showStreakScreen}
+        onClose={() => setShowStreakScreen(false)}
+        streak={stats.currentStreak}
       />
     </div>
   );

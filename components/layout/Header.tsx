@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion";
 import Image from "next/image";
-import { Flame } from "lucide-react";
+import { DotLottieReact } from "@lottiefiles/dotlottie-react";
 import { cn } from "@/lib/utils";
 
 interface HeaderProps {
@@ -72,13 +72,11 @@ export function Header({ coins, streak, variant = "default", className }: Header
                 : "bg-orange-50 dark:bg-orange-950/30"
             )}
           >
-            <Flame
-              className={cn(
-                "h-5 w-5",
-                isTransparent
-                  ? "text-orange-300"
-                  : "text-orange-500"
-              )}
+            <DotLottieReact
+              src="/animations/Fire%20Streak%20Orange.lottie"
+              loop
+              autoplay
+              className="h-6 w-6"
             />
             <span
               className={cn(
